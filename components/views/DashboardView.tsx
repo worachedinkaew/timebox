@@ -5,6 +5,7 @@ import type { DB, Task } from '@/lib/types';
 import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, todayDate } from '@/lib/dates';
 import { chipStyle, taskColor } from '@/lib/colors';
 import { doneStatusIds } from '@/lib/tasks';
+import styles from './DashboardView.module.css';
 
 export default function DashboardView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
   const today = iso(todayDate());
@@ -30,44 +31,44 @@ export default function DashboardView({ db, onEdit }: { db: DB; onEdit: (t: Task
     .sort((a, b) => (a.end! < b.end! ? -1 : 1));
 
   return (
-    <div className="dash">
-      <div className="tiles">
-        <div className="tile"><div className="tv">{total}</div><div className="tl">งานทั้งหมด</div></div>
-        <div className="tile"><div className="tv">{total - doneCount}</div><div className="tl">ยังไม่เสร็จ</div></div>
-        <div className="tile"><div className="tv">{doneCount}</div><div className="tl">เสร็จแล้ว</div></div>
-        <div className={'tile' + (overdue.length ? ' warn' : '')}>
-          <div className="tv">{overdue.length}</div><div className="tl">เกินกำหนด</div>
+    <div className={styles.dash}>
+      <div className={styles.tiles}>
+        <div className={styles.tile}><div className={styles.tv}>{total}</div><div className={styles.tl}>งานทั้งหมด</div></div>
+        <div className={styles.tile}><div className={styles.tv}>{total - doneCount}</div><div className={styles.tl}>ยังไม่เสร็จ</div></div>
+        <div className={styles.tile}><div className={styles.tv}>{doneCount}</div><div className={styles.tl}>เสร็จแล้ว</div></div>
+        <div className={`${styles.tile}${overdue.length ? ' ' + styles.warn : ''}`}>
+          <div className={styles.tv}>{overdue.length}</div><div className={styles.tl}>เกินกำหนด</div>
         </div>
-        <div className="tile"><div className="tv">{weekH}<span className="tu"> ชม.</span></div><div className="tl">จองเวลาสัปดาห์นี้</div></div>
+        <div className={styles.tile}><div className={styles.tv}>{weekH}<span className={styles.tu}> ชม.</span></div><div className={styles.tl}>จองเวลาสัปดาห์นี้</div></div>
       </div>
 
-      <div className="dcards">
-        <div className="dcard">
+      <div className={styles.dcards}>
+        <div className={styles.dcard}>
           <h4>งานตามสถานะ</h4>
           {byStatus.map(({ s, n }) => (
-            <div className="hbar" key={s.id}>
-              <span className="hlab">{s.label}</span>
-              <div className="htrack">
-                {n > 0 && <div className="hfill" style={{ width: `${(n / maxSt) * 100}%`, background: s.color }} />}
+            <div className={styles.hbar} key={s.id}>
+              <span className={styles.hlab}>{s.label}</span>
+              <div className={styles.htrack}>
+                {n > 0 && <div className={styles.hfill} style={{ width: `${(n / maxSt) * 100}%`, background: s.color }} />}
               </div>
-              <span className="hval">{n}</span>
+              <span className={styles.hval}>{n}</span>
             </div>
           ))}
         </div>
 
-        <div className="dcard">
+        <div className={styles.dcard}>
           <h4>ชั่วโมงที่จอง สัปดาห์นี้ ({ws.getDate()} – {addDays(ws, 6).getDate()} {THMON[addDays(ws, 6).getMonth()]})</h4>
-          <div className="cols">
+          <div className={styles.cols}>
             {perDay.map((h, i) => {
               const d = weekDays[i];
               const isT = iso(d) === today;
               return (
-                <div className="col" key={i} title={`${THDOW[i]} ${d.getDate()} ${THMON[d.getMonth()]} — ${h} ชม.`}>
-                  <div className="cwrap">
-                    {h > 0 && <span className="cval">{h}</span>}
-                    <div className="cbar" style={{ height: `${(h / maxDay) * 100}%` }} data-today={isT || undefined} />
+                <div className={styles.col} key={i} title={`${THDOW[i]} ${d.getDate()} ${THMON[d.getMonth()]} — ${h} ชม.`}>
+                  <div className={styles.cwrap}>
+                    {h > 0 && <span className={styles.cval}>{h}</span>}
+                    <div className={styles.cbar} style={{ height: `${(h / maxDay) * 100}%` }} data-today={isT || undefined} />
                   </div>
-                  <span className={'clab' + (isT ? ' now' : '')}>{THDOW[i]}</span>
+                  <span className={`${styles.clab}${isT ? ' ' + styles.now : ''}`}>{THDOW[i]}</span>
                 </div>
               );
             })}
@@ -75,15 +76,15 @@ export default function DashboardView({ db, onEdit }: { db: DB; onEdit: (t: Task
         </div>
       </div>
 
-      <div className="dcard">
+      <div className={styles.dcard}>
         <h4>ใกล้ถึงกำหนดใน 7 วัน</h4>
         {upcoming.map((t) => {
           const s = optById(db.statuses, t.status);
           const isToday = t.end === today;
           return (
-            <div className="uprow" key={t.id} onClick={() => onEdit(t)}>
+            <div className={styles.uprow} key={t.id} onClick={() => onEdit(t)}>
               <span className="pbar" style={{ background: taskColor(t) }} />
-              <span className="upt">{t.title}</span>
+              <span className={styles.upt}>{t.title}</span>
               <span className="chip" style={chipStyle(s)}>{s.label}</span>
               <span className={'mono' + (isToday ? '' : ' muted')} style={isToday ? { color: 'var(--coral)', fontWeight: 600 } : undefined}>
                 {isToday ? 'วันนี้' : fmtShort(t.end)}

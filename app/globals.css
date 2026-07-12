@@ -59,8 +59,14 @@ table.lst{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
 table.lst th{position:sticky;top:0;background:var(--surface);text-align:left;font-family:var(--f-disp);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line-strong);cursor:pointer;white-space:nowrap}
 table.lst td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
 table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
+table.lst th .ar{color:var(--accent);margin-left:3px;font-size:9px}
 .ttl{font-weight:600;display:flex;align-items:center;gap:8px}
 .pbar{width:3px;height:16px;border-radius:2px}
+.lfoot{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:12px}
+.lfoot .sp{flex:1}
+.lfoot select{border:1px solid var(--line-strong);border-radius:7px;padding:4px 7px;font-size:12px;background:var(--surface);color:var(--ink-soft)}
+.lfoot button{width:26px;height:26px;border:1px solid var(--line-strong);background:var(--surface);border-radius:7px;cursor:pointer;color:var(--ink-soft)}
+.lfoot button:disabled{opacity:.4;cursor:default}
 
 .ov{position:fixed;inset:0;background:rgba(20,28,45,.42);display:flex;align-items:flex-start;justify-content:center;padding:34px 16px;z-index:50;overflow:auto}
 .modal{background:var(--surface);border-radius:16px;width:100%;max-width:520px;box-shadow:0 30px 80px -20px rgba(20,28,45,.5)}

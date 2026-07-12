@@ -9,6 +9,7 @@ import { loadHours } from '@/lib/hours';
 import { mergeSlots, slotRangeLabel } from '@/lib/slots';
 import { taskColor } from '@/lib/colors';
 import { taskOnDay } from '@/lib/tasks';
+import styles from './CalendarView.module.css';
 
 type CalMode = 'month' | 'week' | 'day';
 const MODES: { id: CalMode; label: string }[] = [
@@ -51,31 +52,31 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
     : `${THDOW[dowIndex(anchor)]} ${anchor.getDate()} ${THMON[anchor.getMonth()]} ${anchor.getFullYear()}`;
 
   return (
-    <div className="cal">
-      <div className="calnav">
+    <div className={styles.cal}>
+      <div className={styles.calnav}>
         <button onClick={() => nav(-1)}>‹</button>
-        <span className="mo">{title}</span>
+        <span className={styles.mo}>{title}</span>
         <button onClick={() => nav(1)}>›</button>
         <div className="sp" />
-        <div className="calmode">
+        <div className={styles.calmode}>
           {MODES.map((m) => (
-            <button key={m.id} className={mode === m.id ? 'on' : ''} onClick={() => setMode(m.id)}>{m.label}</button>
+            <button key={m.id} className={mode === m.id ? styles.on : ''} onClick={() => setMode(m.id)}>{m.label}</button>
           ))}
         </div>
       </div>
 
       {mode === 'month' && (
-        <div className="calgrid">
-          {THDOW.map((d) => <div key={d} className="cdow">{d}</div>)}
+        <div className={styles.calgrid}>
+          {THDOW.map((d) => <div key={d} className={styles.cdow}>{d}</div>)}
           {Array.from({ length: 42 }, (_, i) => addDays(mondayOf(new Date(anchor.getFullYear(), anchor.getMonth(), 1)), i)).map((d) => {
             const ds = iso(d);
             const evs = tasksOn(ds);
             const shown = evs.slice(0, 3);
             return (
-              <div key={ds} className={'ccell' + (d.getMonth() !== anchor.getMonth() ? ' out' : '') + (ds === tdy ? ' tdy' : '')}>
-                <div className="dn">{d.getDate()}</div>
+              <div key={ds} className={`${styles.ccell}${d.getMonth() !== anchor.getMonth() ? ' ' + styles.out : ''}${ds === tdy ? ' ' + styles.tdy : ''}`}>
+                <div className={styles.dn}>{d.getDate()}</div>
                 {shown.map((t) => (
-                  <div key={t.id} className="cev" style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>{t.title}</div>
+                  <div key={t.id} className={styles.cev} style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>{t.title}</div>
                 ))}
                 {evs.length > shown.length && <div className="muted" style={{ fontSize: 10 }}>+{evs.length - shown.length}</div>}
               </div>
@@ -85,24 +86,24 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
       )}
 
       {mode === 'week' && (
-        <div className="calgrid">
+        <div className={styles.calgrid}>
           {Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
             const ds = iso(d);
             return (
-              <div key={'h' + ds} className={'cdow' + (ds === tdy ? ' now' : '')}>{THDOW[dowIndex(d)]} {d.getDate()}</div>
+              <div key={'h' + ds} className={`${styles.cdow}${ds === tdy ? ' ' + styles.now : ''}`}>{THDOW[dowIndex(d)]} {d.getDate()}</div>
             );
           })}
           {Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
             const ds = iso(d);
             return (
-              <div key={ds} className={'ccell tall' + (ds === tdy ? ' tdy' : '')}>
-                <div className="dn">{d.getDate()}</div>
+              <div key={ds} className={`${styles.ccell} ${styles.tall}${ds === tdy ? ' ' + styles.tdy : ''}`}>
+                <div className={styles.dn}>{d.getDate()}</div>
                 {tasksOn(ds).map((t) => {
                   const tm = timesFor(t.id, ds);
                   return (
-                    <div key={t.id} className="cev" style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>
+                    <div key={t.id} className={styles.cev} style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>
                       {t.title}
-                      {tm.length > 0 && <div className="cevt">{tm.join(' · ')}</div>}
+                      {tm.length > 0 && <div className={styles.cevt}>{tm.join(' · ')}</div>}
                     </div>
                   );
                 })}
@@ -133,18 +134,18 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
         const HH = 44; // px ต่อ 1 ชั่วโมง
         const taskById = new Map(db.tasks.map((t) => [t.id, t]));
         return (
-          <div className="dayview">
+          <div className={styles.dayview}>
             {evs.length > 0 && (
-              <div className="dallday">
+              <div className={styles.dallday}>
                 <span className="muted" style={{ fontSize: 11, alignSelf: 'center' }}>งานช่วงนี้:</span>
                 {evs.map((t) => (
-                  <div key={t.id} className="cev" style={{ background: taskColor(t), marginBottom: 0 }} onClick={() => onEdit(t)}>{t.title}</div>
+                  <div key={t.id} className={styles.cev} style={{ background: taskColor(t), marginBottom: 0 }} onClick={() => onEdit(t)}>{t.title}</div>
                 ))}
               </div>
             )}
-            <div className="dtl" style={{ height: (hourEnd - hourStart) * HH }}>
+            <div className={styles.dtl} style={{ height: (hourEnd - hourStart) * HH }}>
               {Array.from({ length: hourEnd - hourStart + 1 }, (_, h) => (
-                <div key={h} className="dtlrow" style={{ top: h * HH }}>
+                <div key={h} className={styles.dtlrow} style={{ top: h * HH }}>
                   <span>{pad(hourStart + h)}:00</span>
                 </div>
               ))}
@@ -154,7 +155,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
                 return (
                   <div
                     key={seg.key}
-                    className={'dtlev' + (isBuf ? ' buf' : '')}
+                    className={`${styles.dtlev}${isBuf ? ' ' + styles.buf : ''}`}
                     style={{
                       top: (seg.s0 / 2 - hourStart) * HH + 1,
                       height: ((seg.s1 - seg.s0 + 1) / 2) * HH - 2,
@@ -163,12 +164,12 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
                     onClick={t ? () => onEdit(t) : undefined}
                   >
                     <b>{isBuf ? 'เวลาเผื่องานแทรก' : t?.title ?? '—'}</b>
-                    <span className="dtlt">{slotRangeLabel(seg.s0, seg.s1)}</span>
+                    <span className={styles.dtlt}>{slotRangeLabel(seg.s0, seg.s1)}</span>
                   </div>
                 );
               })}
               {!segs.length && (
-                <div className="dtlempty">ยังไม่ได้จองเวลาในวันนี้ — ไประบายเวลาให้งานในแท็บ Timebox</div>
+                <div className={styles.dtlempty}>ยังไม่ได้จองเวลาในวันนี้ — ไประบายเวลาให้งานในแท็บ Timebox</div>
               )}
             </div>
           </div>

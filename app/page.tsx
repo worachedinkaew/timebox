@@ -15,12 +15,12 @@ import DashboardView from '../components/DashboardView';
 import { getParam, setParam } from '../lib/urlstate';
 
 const VIEWS = [
+  ['dash', '▩ Dashboard'],
   ['list', '≣ List'],
   ['kanban', '▤ Kanban'],
   ['gantt', '▥ Gantt'],
   ['timebox', '▦ Timebox'],
   ['calendar', '▧ Calendar'],
-  ['dash', '▩ Dashboard'],
 ] as const;
 type View = (typeof VIEWS)[number][0];
 
@@ -32,7 +32,7 @@ export default function Page() {
   // HTML ที่ prerender คือหน้า "กำลังโหลด…" (ready=false) แถบ tab ยัง render ฝั่ง client หลัง auth เท่านั้น
   const [view, setView] = useState<View>(() => {
     const v = getParam('v');
-    return v && VIEWS.some(([id]) => id === v) ? (v as View) : 'list';
+    return v && VIEWS.some(([id]) => id === v) ? (v as View) : 'dash';
   });
   const [editing, setEditing] = useState<{ task: Task | null; defaults?: Partial<Task> } | null>(null);
   const [showFields, setShowFields] = useState(false);
@@ -44,7 +44,7 @@ export default function Page() {
 
   const switchView = (v: View) => {
     setView(v);
-    setParam('v', v === 'list' ? null : v);
+    setParam('v', v === 'dash' ? null : v);
   };
 
   const fdb = useMemo(() => {

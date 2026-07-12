@@ -5,6 +5,7 @@ import { optById } from '@/lib/types';
 import type { DB, Task } from '@/lib/types';
 import { chipStyle, taskColor } from '@/lib/colors';
 import { fmtShort } from '@/lib/dates';
+import styles from './ListView.module.css';
 
 const PAGE_SIZES = [10, 25, 50, 100];
 
@@ -51,12 +52,12 @@ export default function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => 
     ['title', 'งาน'], ['status', 'สถานะ'], ['priority', 'Priority'],
     ['start', 'เริ่ม'], ['end', 'จบ'], ['manday', 'Manday'],
   ];
-  const arrow = (k: string) => sort.k === k && <span className="ar">{sort.dir > 0 ? '▲' : '▼'}</span>;
+  const arrow = (k: string) => sort.k === k && <span className={styles.ar}>{sort.dir > 0 ? '▲' : '▼'}</span>;
 
   return (
     <div>
       <div className="scroll">
-        <table className="lst">
+        <table className={styles.lst}>
           <thead>
             <tr>
               {COLS.map(([k, label]) => <th key={k} onClick={() => clickSort(k)}>{label}{arrow(k)}</th>)}
@@ -68,7 +69,7 @@ export default function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => 
               const s = optById(db.statuses, t.status), p = optById(db.priorities, t.priority);
               return (
                 <tr key={t.id} onClick={() => onEdit(t)}>
-                  <td><div className="ttl"><span className="pbar" style={{ background: taskColor(t) }} />{t.title}</div></td>
+                  <td><div className={styles.ttl}><span className="pbar" style={{ background: taskColor(t) }} />{t.title}</div></td>
                   <td><span className="chip" style={chipStyle(s)}><span className="dot" style={{ background: s.color }} />{s.label}</span></td>
                   <td><span className="chip" style={chipStyle(p)}>{p.label}</span></td>
                   <td className="mono muted">{fmtShort(t.start)}</td>
@@ -81,7 +82,7 @@ export default function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => 
           </tbody>
         </table>
       </div>
-      <div className="lfoot">
+      <div className={styles.lfoot}>
         <span className="muted">
           {total ? `${cur * pageSize + 1}–${Math.min((cur + 1) * pageSize, total)} จาก ${total} งาน` : 'ไม่มีงาน'}
         </span>

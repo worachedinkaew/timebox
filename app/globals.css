@@ -46,6 +46,10 @@ table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .mft{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
 .mft .del{margin-right:auto;color:var(--coral);border-color:#f0d4d0}
+.fitem{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:7px}
+.fitem .ft{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-faint);background:#f4f6f8;padding:1px 7px;border-radius:5px}
+.fitem .rm{margin-left:auto;border:none;background:transparent;color:var(--ink-faint);cursor:pointer;font-size:16px}
+.fitem .rm:hover{color:var(--coral)}
 
 /* ---------- KANBAN ---------- */
 .kb{display:flex;gap:12px;padding:14px;align-items:flex-start;min-height:440px}

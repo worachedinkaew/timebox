@@ -9,6 +9,8 @@ import KanbanView from '../components/KanbanView';
 import GanttView from '../components/GanttView';
 import TimeboxView from '../components/TimeboxView';
 import CalendarView from '../components/CalendarView';
+import FieldManager from '../components/FieldManager';
+import { getParam, setParam } from '../lib/urlstate';
 
 const VIEWS = [
   ['list', '≣ List'],
@@ -26,8 +28,19 @@ export default function Page() {
   const [userId, setUserId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [db, setDb] = useState<DB | null>(null);
-  const [view, setView] = useState<View>('list');
+  // อ่าน view จาก URL ใน initializer ได้ ไม่มี hydration mismatch —
+  // HTML ที่ prerender คือหน้า "กำลังโหลด…" (ready=false) แถบ tab ยัง render ฝั่ง client หลัง auth เท่านั้น
+  const [view, setView] = useState<View>(() => {
+    const v = getParam('v');
+    return v && VIEWS.some(([id]) => id === v) ? (v as View) : 'list';
+  });
   const [editing, setEditing] = useState<{ task: Task | null; defaults?: Partial<Task> } | null>(null);
+  const [showFields, setShowFields] = useState(false);
+
+  const switchView = (v: View) => {
+    setView(v);
+    setParam('v', v === 'list' ? null : v);
+  };
 
   useEffect(() => {
     authApi.getUser().then((u) => { setUserId(u?.id ?? null); setReady(true); });
@@ -65,10 +78,11 @@ export default function Page() {
         <div className="brand"><span className="mk" />Timebox</div>
         <div className="tabs">
           {VIEWS.map(([v, label]) => (
-            <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{label}</button>
+            <button key={v} className={view === v ? 'on' : ''} onClick={() => switchView(v)}>{label}</button>
           ))}
         </div>
         <div className="sp" />
+        <button className="btn" onClick={() => setShowFields(true)}>⚙ ฟิลด์</button>
         <button className="btn" onClick={() => authApi.signOut()}>ออกจากระบบ</button>
         <button className="btn pri" onClick={() => setEditing({ task: null })}>+ งานใหม่</button>
       </div>
@@ -102,6 +116,10 @@ export default function Page() {
           onClose={() => setEditing(null)}
           onSaved={async () => { setEditing(null); await refresh(); }}
         />
+      )}
+
+      {showFields && db && (
+        <FieldManager db={db} onClose={() => setShowFields(false)} onChanged={refresh} />
       )}
     </div>
   );

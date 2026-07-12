@@ -5,6 +5,7 @@ import { blockApi } from '../lib/db';
 import { TASK_COLORS } from '../lib/types';
 import type { Block, DB, Task } from '../lib/types';
 import { THDOW, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
+import { getParam, setParam } from '../lib/urlstate';
 
 const TB_START = 8, TB_END = 18;
 const N_SLOTS = (TB_END - TB_START) * 2; // 1 ช่อง = 30 นาที
@@ -19,7 +20,15 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
   updateBlocks: (up: (blocks: Block[]) => Block[]) => void;
   onError: () => void;
 }) {
-  const [weekStart, setWeekStart] = useState(() => iso(mondayOf(todayDate())));
+  // component นี้ mount ฝั่ง client เท่านั้น (หลัง auth gate) อ่าน URL ใน initializer ได้เลย
+  const [weekStart, setWeekStartRaw] = useState(() => {
+    const w = getParam('w');
+    return w && /^\d{4}-\d{2}-\d{2}$/.test(w) ? iso(mondayOf(parseISO(w))) : iso(mondayOf(todayDate()));
+  });
+  const setWeekStart = (ws: string) => {
+    setWeekStartRaw(ws);
+    setParam('w', ws);
+  };
   const [sel, setSel] = useState<string | null>(null);
   const [erase, setErase] = useState(false);
   const [warn, setWarn] = useState(false);

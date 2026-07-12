@@ -3,22 +3,30 @@
 import { useState } from 'react';
 import { TASK_COLORS } from '../lib/types';
 import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, iso, mondayOf, todayDate } from '../lib/dates';
+import { THDOW, THMON, addDays, iso, mondayOf, pad, todayDate } from '../lib/dates';
+import { getParam, setParam } from '../lib/urlstate';
 
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
 
 export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
+  // component นี้ mount ฝั่ง client เท่านั้น (หลัง auth gate) อ่าน URL ใน initializer ได้เลย
   const [month, setMonth] = useState(() => {
+    const q = getParam('m');
+    if (q && /^\d{4}-\d{2}$/.test(q)) {
+      const p = q.split('-');
+      return { y: +p[0], m: +p[1] - 1 };
+    }
     const t = todayDate();
     return { y: t.getFullYear(), m: t.getMonth() };
   });
   const gridStart = mondayOf(new Date(month.y, month.m, 1));
   const tdy = iso(todayDate());
   const cells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
-  const nav = (d: number) => setMonth(({ y, m }) => {
-    const x = new Date(y, m + d, 1);
-    return { y: x.getFullYear(), m: x.getMonth() };
-  });
+  const nav = (d: number) => {
+    const x = new Date(month.y, month.m + d, 1);
+    setMonth({ y: x.getFullYear(), m: x.getMonth() });
+    setParam('m', `${x.getFullYear()}-${pad(x.getMonth() + 1)}`);
+  };
 
   return (
     <div className="cal">

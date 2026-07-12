@@ -74,9 +74,9 @@ supabase/         schema + RLS
    (ยังไม่มี "เวลาเผื่องานแทรก" จาก prototype — ต้องแก้ schema ให้ block ไม่ผูก task ก่อน)
 4. ✅ **Calendar** — เดือน grid ตามช่วงวันที่ — `components/CalendarView.tsx`
 
-## เฟสถัดไป
+และครบตามแผนเฟสแรกแล้ว:
 
-- **Field manager** — เพิ่ม/ลบ custom field (`fieldApi`)
-- เก็บ view/สัปดาห์ที่เลือกไว้ใน URL query เพื่อแชร์ลิงก์/refresh ไม่หลุด
+- ✅ **Field manager** — ปุ่ม "⚙ ฟิลด์" เพิ่ม/ลบ custom field — `components/FieldManager.tsx`
+- ✅ **URL query** — view (`?v=`), สัปดาห์ timebox (`?w=`), เดือนปฏิทิน (`?m=`) อยู่ใน URL แชร์ลิงก์/refresh ไม่หลุด
 
 prototype ต้นทางอยู่ที่ `docs/timebox-task-manager.html`

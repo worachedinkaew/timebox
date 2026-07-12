@@ -4,6 +4,8 @@ import { optById } from '@/lib/types';
 import type { DB, Task } from '@/lib/types';
 import { THDOW, THMON, addDays, dayDiff, dowIndex, fmtShort, iso, mondayOf, parseISO, todayDate } from '@/lib/dates';
 import { useUrlDate } from '@/hooks/useUrlDate';
+import nav from '@/components/ui/nav.module.css';
+import styles from './GanttView.module.css';
 
 const DW = 36;    // px ต่อ 1 วัน
 const DAYS = 28;  // หน้าต่างครั้งละ 4 สัปดาห์ เลื่อนทีละสัปดาห์ด้วย ‹ ›
@@ -15,7 +17,7 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
   const s0 = parseISO(start);
   const endIso = iso(addDays(s0, DAYS - 1));
   // กลับมาช่วง default ให้ลบ ?g= ออกจาก URL
-  const nav = (days: number) => {
+  const navTo = (days: number) => {
     const ns = iso(addDays(s0, days));
     setStart(ns, ns === defaultStart() ? null : ns);
   };
@@ -40,25 +42,25 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
 
   return (
     <div>
-      <div className="tbnav" style={{ padding: '10px 12px 8px' }}>
-        <button onClick={() => nav(-7)}>‹</button>
-        <span className="wk">{fmtShort(start)} – {fmtShort(endIso)} {parseISO(endIso).getFullYear()}</span>
-        <button onClick={() => nav(7)}>›</button>
+      <div className={nav.tbnav} style={{ padding: '10px 12px 8px' }}>
+        <button onClick={() => navTo(-7)}>‹</button>
+        <span className={nav.wk}>{fmtShort(start)} – {fmtShort(endIso)} {parseISO(endIso).getFullYear()}</span>
+        <button onClick={() => navTo(7)}>›</button>
         {start !== defaultStart() && (
-          <button style={{ width: 'auto', padding: '0 10px' }} onClick={() => nav(dayDiff(start, defaultStart()))}>วันนี้</button>
+          <button style={{ width: 'auto', padding: '0 10px' }} onClick={() => navTo(dayDiff(start, defaultStart()))}>วันนี้</button>
         )}
       </div>
       <div className="scroll" style={{ maxHeight: 600 }}>
-        <div className="gantt">
-          <div className="grow ghead">
-            <div className="gname">งาน</div>
-            <div className="gtrack" style={{ width: DAYS * DW }}>
-              <div className="gmons">
+        <div className={styles.gantt}>
+          <div className={`${styles.grow} ${styles.ghead}`}>
+            <div className={styles.gname}>งาน</div>
+            <div className={styles.gtrack} style={{ width: DAYS * DW }}>
+              <div className={styles.gmons}>
                 {monthSegs.map((m, i) => <span key={i} style={{ width: m.span * DW }}>{m.label}</span>)}
               </div>
               <div>
                 {dayCells.map((c, i) => (
-                  <span key={i} className={'gcell' + (c.we ? ' we' : '') + (c.td ? ' tdy' : '')} style={{ width: DW }}>
+                  <span key={i} className={`${styles.gcell}${c.we ? ' ' + styles.we : ''}${c.td ? ' ' + styles.tdy : ''}`} style={{ width: DW }}>
                     {THDOW[dowIndex(c.d)]}<br /><b>{c.d.getDate()}</b>
                   </span>
                 ))}
@@ -73,16 +75,16 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
             const len = last - off + 1;
             const s = st(t.status);
             return (
-              <div className="grow" key={t.id}>
-                <div className="gname">{t.title}</div>
-                <div className="gtrack" style={{ width: DAYS * DW }}>
-                  <div className="gbarrow">
+              <div className={styles.grow} key={t.id}>
+                <div className={styles.gname}>{t.title}</div>
+                <div className={styles.gtrack} style={{ width: DAYS * DW }}>
+                  <div className={styles.gbarrow}>
                     {dayCells.map((c, j) => (
-                      <div key={j} className={'gbg' + (c.we ? ' we' : '') + (c.td ? ' td' : '')} style={{ left: j * DW, width: DW }} />
+                      <div key={j} className={`${styles.gbg}${c.we ? ' ' + styles.we : ''}${c.td ? ' ' + styles.td : ''}`} style={{ left: j * DW, width: DW }} />
                     ))}
-                    {toff >= 0 && toff < DAYS && <div className="gtoday" style={{ left: toff * DW + DW / 2 }} />}
+                    {toff >= 0 && toff < DAYS && <div className={styles.gtoday} style={{ left: toff * DW + DW / 2 }} />}
                     <div
-                      className="gbar"
+                      className={styles.gbar}
                       title={`${t.title} · ${fmtShort(t.start)} – ${fmtShort(t.end)}`}
                       style={{ left: off * DW + 2, width: len * DW - 4, background: s.color }}
                       onClick={() => onEdit(t)}

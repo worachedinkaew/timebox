@@ -1,18 +1,19 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { authApi, loadAll, taskApi } from '../lib/db';
-import { TASK_COLORS, optById } from '../lib/types';
-import type { Block, DB, Task, Status, Priority } from '../lib/types';
-import MultiSelect from '../components/MultiSelect';
-import { fmtShort } from '../lib/dates';
-import KanbanView from '../components/KanbanView';
-import GanttView from '../components/GanttView';
-import TimeboxView from '../components/TimeboxView';
-import CalendarView from '../components/CalendarView';
-import FieldManager from '../components/FieldManager';
-import DashboardView from '../components/DashboardView';
-import { getParam, setParam } from '../lib/urlstate';
+import { authApi, loadAll, taskApi } from '@/lib/db';
+import { optById } from '@/lib/types';
+import type { Block, DB, Task, Status, Priority } from '@/lib/types';
+import { chipStyle, taskColor } from '@/lib/colors';
+import MultiSelect from '@/components/MultiSelect';
+import { fmtShort } from '@/lib/dates';
+import KanbanView from '@/components/KanbanView';
+import GanttView from '@/components/GanttView';
+import TimeboxView from '@/components/TimeboxView';
+import CalendarView from '@/components/CalendarView';
+import FieldManager from '@/components/FieldManager';
+import DashboardView from '@/components/DashboardView';
+import { getParam, setParam } from '@/lib/urlstate';
 
 const VIEWS = [
   ['dash', '▩ Dashboard'],
@@ -196,7 +197,6 @@ function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
     return PAGE_SIZES.includes(n) ? n : 25;
   });
 
-  const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
   const clickSort = (k: string) =>
     setSort((s) => (s.k === k ? { k, dir: -s.dir as 1 | -1 } : { k, dir: 1 }));
 
@@ -248,9 +248,9 @@ function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
               const s = optById(db.statuses, t.status), p = optById(db.priorities, t.priority);
               return (
                 <tr key={t.id} onClick={() => onEdit(t)}>
-                  <td><div className="ttl"><span className="pbar" style={{ background: color(t) }} />{t.title}</div></td>
-                  <td><span className="chip" style={{ background: s.color + '22', color: s.color }}><span className="dot" style={{ background: s.color }} />{s.label}</span></td>
-                  <td><span className="chip" style={{ background: p.color + '22', color: p.color }}>{p.label}</span></td>
+                  <td><div className="ttl"><span className="pbar" style={{ background: taskColor(t) }} />{t.title}</div></td>
+                  <td><span className="chip" style={chipStyle(s)}><span className="dot" style={{ background: s.color }} />{s.label}</span></td>
+                  <td><span className="chip" style={chipStyle(p)}>{p.label}</span></td>
                   <td className="mono muted">{fmtShort(t.start)}</td>
                   <td className="mono muted">{fmtShort(t.end)}</td>
                   <td className="mono">{t.manday} md</td>

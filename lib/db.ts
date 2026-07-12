@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
-import { DEFAULT_PRIORITIES, DEFAULT_STATUSES } from './types';
-import type { DB, Task, FieldDef, OptionDef } from './types';
+import { supabase } from '@/lib/supabase';
+import { DEFAULT_PRIORITIES, DEFAULT_STATUSES } from '@/lib/types';
+import type { DB, Task, FieldDef, OptionDef } from '@/lib/types';
 
 // ---------------- AUTH ----------------
 export const authApi = {

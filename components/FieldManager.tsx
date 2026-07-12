@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { fieldApi, optionsApi, taskBulkApi } from '../lib/db';
-import type { DB, FieldType, OptionDef } from '../lib/types';
+import { fieldApi, optionsApi, taskBulkApi } from '@/lib/db';
+import { GREY } from '@/lib/types';
+import type { DB, FieldType, OptionDef } from '@/lib/types';
 
 const FIELD_TYPES: { id: FieldType; label: string }[] = [
   { id: 'text', label: 'Text' },
@@ -115,11 +116,11 @@ export default function FieldManager({ db, onClose, onChanged }: {
 
           <div className="shead">สถานะ (คอลัมน์ Kanban)</div>
           <OptionRows list={statuses} onList={(l) => { setStatuses(l); setOptDirty(true); }} withDone />
-          <button className="oadd" onClick={() => { setStatuses([...statuses, { id: newId(), label: '', color: '#8A93A0' }]); setOptDirty(true); }}>+ เพิ่มสถานะ (เช่น Cancel)</button>
+          <button className="oadd" onClick={() => { setStatuses([...statuses, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่มสถานะ (เช่น Cancel)</button>
 
           <div className="shead" style={{ marginTop: 16 }}>Priority</div>
           <OptionRows list={priorities} onList={(l) => { setPriorities(l); setOptDirty(true); }} />
-          <button className="oadd" onClick={() => { setPriorities([...priorities, { id: newId(), label: '', color: '#8A93A0' }]); setOptDirty(true); }}>+ เพิ่ม priority</button>
+          <button className="oadd" onClick={() => { setPriorities([...priorities, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่ม priority</button>
 
           {optDirty && (
             <button className="btn pri" style={{ width: '100%', marginTop: 12 }} onClick={saveOptions} disabled={busy}>

@@ -1,14 +1,14 @@
 'use client';
 
-import { TASK_COLORS, optById } from '../lib/types';
-import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, todayDate } from '../lib/dates';
-
-const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
+import { optById } from '@/lib/types';
+import type { DB, Task } from '@/lib/types';
+import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, todayDate } from '@/lib/dates';
+import { chipStyle, taskColor } from '@/lib/colors';
+import { doneStatusIds } from '@/lib/tasks';
 
 export default function DashboardView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
   const today = iso(todayDate());
-  const doneIds = new Set(db.statuses.filter((s) => s.done).map((s) => s.id));
+  const doneIds = doneStatusIds(db.statuses);
 
   const total = db.tasks.length;
   const doneCount = db.tasks.filter((t) => doneIds.has(t.status)).length;
@@ -82,9 +82,9 @@ export default function DashboardView({ db, onEdit }: { db: DB; onEdit: (t: Task
           const isToday = t.end === today;
           return (
             <div className="uprow" key={t.id} onClick={() => onEdit(t)}>
-              <span className="pbar" style={{ background: color(t) }} />
+              <span className="pbar" style={{ background: taskColor(t) }} />
               <span className="upt">{t.title}</span>
-              <span className="chip" style={{ background: s.color + '22', color: s.color }}>{s.label}</span>
+              <span className="chip" style={chipStyle(s)}>{s.label}</span>
               <span className={'mono' + (isToday ? '' : ' muted')} style={isToday ? { color: 'var(--coral)', fontWeight: 600 } : undefined}>
                 {isToday ? 'วันนี้' : fmtShort(t.end)}
               </span>

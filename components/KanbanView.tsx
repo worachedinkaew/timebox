@@ -3,9 +3,10 @@
 import { useRef } from 'react';
 import { DndContext, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
-import { optById } from '../lib/types';
-import type { DB, OptionDef, Status, Task } from '../lib/types';
-import { fmtShort } from '../lib/dates';
+import { optById } from '@/lib/types';
+import type { DB, OptionDef, Status, Task } from '@/lib/types';
+import { fmtShort } from '@/lib/dates';
+import { chipStyle } from '@/lib/colors';
 
 export default function KanbanView({ db, onEdit, onAdd, onMove }: {
   db: DB;
@@ -85,7 +86,7 @@ function Card({ task, priorities, onClick }: { task: Task; priorities: OptionDef
     >
       <div className="kt">{task.title}</div>
       <div className="meta">
-        <span className="chip" style={{ background: p.color + '22', color: p.color }}>{p.label}</span>
+        <span className="chip" style={chipStyle(p)}>{p.label}</span>
         <span className="mono" style={{ color: 'var(--ink-soft)' }}>{task.manday} md</span>
       </div>
       <div className="meta"><span className="dts">{fmtShort(task.start)} → {fmtShort(task.end)}</span></div>

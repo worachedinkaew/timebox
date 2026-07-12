@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { optById } from '../lib/types';
-import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, dayDiff, fmtShort, iso, mondayOf, parseISO, todayDate } from '../lib/dates';
-import { getParam, setParam } from '../lib/urlstate';
+import { optById } from '@/lib/types';
+import type { DB, Task } from '@/lib/types';
+import { THDOW, THMON, addDays, dayDiff, dowIndex, fmtShort, iso, mondayOf, parseISO, todayDate } from '@/lib/dates';
+import { getParam, setParam } from '@/lib/urlstate';
 
 const DW = 36;    // px ต่อ 1 วัน
 const DAYS = 28;  // หน้าต่างครั้งละ 4 สัปดาห์ เลื่อนทีละสัปดาห์ด้วย ‹ ›
@@ -64,7 +64,7 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
               <div>
                 {dayCells.map((c, i) => (
                   <span key={i} className={'gcell' + (c.we ? ' we' : '') + (c.td ? ' tdy' : '')} style={{ width: DW }}>
-                    {THDOW[(c.d.getDay() + 6) % 7]}<br /><b>{c.d.getDate()}</b>
+                    {THDOW[dowIndex(c.d)]}<br /><b>{c.d.getDate()}</b>
                   </span>
                 ))}
               </div>

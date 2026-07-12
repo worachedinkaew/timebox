@@ -51,8 +51,11 @@ export const DEFAULT_STATUSES: OptionDef[] = [
   { id: 'review', label: 'Review', color: '#7B6CB3' },
   { id: 'done', label: 'Done', color: '#2A9D8F', done: true },
 ];
+// สีเทากลาง — ใช้เป็น fallback ของ option ที่หาไม่เจอ และสีเริ่มต้นของ option ใหม่
+export const GREY = '#8A93A0';
+
 export const DEFAULT_PRIORITIES: OptionDef[] = [
-  { id: 'low', label: 'Low', color: '#8A93A0' },
+  { id: 'low', label: 'Low', color: GREY },
   { id: 'med', label: 'Med', color: '#4A8FC7' },
   { id: 'high', label: 'High', color: '#E9A23B' },
   { id: 'urgent', label: 'Urgent', color: '#E76F51' },
@@ -61,4 +64,4 @@ export const TASK_COLORS = ['#2A9D8F', '#E76F51', '#E9A23B', '#7B6CB3', '#4A8FC7
 
 // หา option จาก id — ไม่เจอ (เช่น option ถูกลบ) ได้ chip เทาแต่แอปไม่พัง
 export const optById = (list: OptionDef[], id: string): OptionDef =>
-  list.find((o) => o.id === id) ?? { id, label: id || '—', color: '#8A93A0' };
+  list.find((o) => o.id === id) ?? { id, label: id || '—', color: GREY };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { OptionDef } from '../lib/types';
+import type { OptionDef } from '@/lib/types';
 
 export default function MultiSelect({ placeholder, options, value, onChange }: {
   placeholder: string;

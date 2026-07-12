@@ -1,19 +1,14 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { blockApi } from '../lib/db';
-import { TASK_COLORS } from '../lib/types';
-import type { Block, DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
-import { getParam, setParam } from '../lib/urlstate';
-import { loadHours, saveHours } from '../lib/hours';
-
-// slot = index ช่อง 30 นาทีจากเที่ยงคืน (16 = 08:00) — ช่วงที่แสดงเลือกได้ เก็บใน localStorage
-const cellKey = (date: string, slot: number) => `${date}|${slot}`;
-const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
-
-// ค่า sel ตอนเลือกแถว buffer — ใน DB บล็อก buffer คือแถวที่ taskId เป็น null
-const BUFID = '__buffer__';
+import { blockApi } from '@/lib/db';
+import type { Block, DB, Task } from '@/lib/types';
+import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '@/lib/dates';
+import { getParam, setParam } from '@/lib/urlstate';
+import { loadHours, saveHours } from '@/lib/hours';
+import { BUFID, cellKey } from '@/lib/slots';
+import { taskColor } from '@/lib/colors';
+import { doneStatusIds } from '@/lib/tasks';
 
 type Op =
   | { kind: 'set'; taskId: string | null; date: string; slot: number }
@@ -149,7 +144,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
 
   const ws = parseISO(weekStart);
   // ตัดงานที่ status ติดธง done ออกจาก rail (ชุด status ผู้ใช้กำหนดเองได้)
-  const doneIds = new Set(db.statuses.filter((s) => s.done).map((s) => s.id));
+  const doneIds = doneStatusIds(db.statuses);
   const railTasks = db.tasks.filter((t) => !doneIds.has(t.status));
   const taskById = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
   const plannedHours = useMemo(() => {
@@ -192,14 +187,14 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
               onClick={() => { setErase(false); setSel(sel === t.id ? null : t.id); }}
             >
               <div className="r1">
-                <span className="sw" style={{ background: color(t) }} />
+                <span className="sw" style={{ background: taskColor(t) }} />
                 <span className="nm">{t.title}</span>
               </div>
               <div className="r2">
                 {planned} / {est} ชม.
                 <span className={'rem' + (over ? ' warn' : '')}>{over ? `เกิน ${-rem}` : `เหลือ ${rem}`}</span>
               </div>
-              <div className="gz"><span style={{ width: `${pct}%`, background: color(t) }} /></div>
+              <div className="gz"><span style={{ width: `${pct}%`, background: taskColor(t) }} /></div>
             </div>
           );
         })}
@@ -284,7 +279,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
                         className={'tcell' + (hr ? ' hr' : '') + (isBuf ? ' bf' : '') + (date === iso(todayDate()) ? ' td' : '')}
                         data-date={date}
                         data-slot={s}
-                        style={t ? { background: color(t) } : undefined}
+                        style={t ? { background: taskColor(t) } : undefined}
                       >
                         {showLabel && <span className="lb">{t!.title}</span>}
                       </div>

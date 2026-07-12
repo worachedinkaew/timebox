@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { TASK_COLORS } from '../lib/types';
-import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, iso, mondayOf, pad, todayDate } from '../lib/dates';
-import { getParam, setParam } from '../lib/urlstate';
-import { loadHours } from '../lib/hours';
-
-const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
+import { GREY } from '@/lib/types';
+import type { DB, Task } from '@/lib/types';
+import { THDOW, THMON, addDays, dowIndex, iso, mondayOf, pad, todayDate } from '@/lib/dates';
+import { getParam, setParam } from '@/lib/urlstate';
+import { loadHours } from '@/lib/hours';
+import { mergeSlots, slotRangeLabel } from '@/lib/slots';
+import { taskColor } from '@/lib/colors';
+import { taskOnDay } from '@/lib/tasks';
 
 type CalMode = 'month' | 'week' | 'day';
 const MODES: { id: CalMode; label: string }[] = [
@@ -36,28 +37,18 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
   };
 
   const tdy = iso(todayDate());
-  const tasksOn = (ds: string) => db.tasks.filter((t) => t.start && t.end && ds >= t.start && ds <= t.end);
+  const tasksOn = (ds: string) => db.tasks.filter((t) => taskOnDay(t, ds));
 
   // เวลาไม่ได้อยู่ที่ตัวงาน แต่อยู่ที่บล็อกที่ระบายไว้ใน Timebox — รวม slot ติดกันเป็นช่วง เช่น 11:30–13:00
-  const slotTime = (s: number) => `${pad(Math.floor(s / 2))}:${s % 2 ? '30' : '00'}`;
-  const timesFor = (taskId: string | null, ds: string) => {
-    const slots = db.blocks.filter((b) => b.taskId === taskId && b.date === ds).map((b) => b.slot).sort((a, b) => a - b);
-    const out: string[] = [];
-    let i = 0;
-    while (i < slots.length) {
-      let j = i;
-      while (j + 1 < slots.length && slots[j + 1] === slots[j] + 1) j++;
-      out.push(`${slotTime(slots[i])}–${slotTime(slots[j] + 1)}`);
-      i = j + 1;
-    }
-    return out;
-  };
+  const timesFor = (taskId: string | null, ds: string) =>
+    mergeSlots(db.blocks.filter((b) => b.taskId === taskId && b.date === ds).map((b) => b.slot))
+      .map(({ s0, s1 }) => slotRangeLabel(s0, s1));
 
   const ws = mondayOf(anchor);
   const title =
     mode === 'month' ? `${THMON[anchor.getMonth()]} ${anchor.getFullYear()}`
     : mode === 'week' ? `${ws.getDate()} ${THMON[ws.getMonth()]} – ${addDays(ws, 6).getDate()} ${THMON[addDays(ws, 6).getMonth()]} ${addDays(ws, 6).getFullYear()}`
-    : `${THDOW[(anchor.getDay() + 6) % 7]} ${anchor.getDate()} ${THMON[anchor.getMonth()]} ${anchor.getFullYear()}`;
+    : `${THDOW[dowIndex(anchor)]} ${anchor.getDate()} ${THMON[anchor.getMonth()]} ${anchor.getFullYear()}`;
 
   return (
     <div className="cal">
@@ -84,7 +75,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
               <div key={ds} className={'ccell' + (d.getMonth() !== anchor.getMonth() ? ' out' : '') + (ds === tdy ? ' tdy' : '')}>
                 <div className="dn">{d.getDate()}</div>
                 {shown.map((t) => (
-                  <div key={t.id} className="cev" style={{ background: color(t) }} onClick={() => onEdit(t)}>{t.title}</div>
+                  <div key={t.id} className="cev" style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>{t.title}</div>
                 ))}
                 {evs.length > shown.length && <div className="muted" style={{ fontSize: 10 }}>+{evs.length - shown.length}</div>}
               </div>
@@ -98,7 +89,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
           {Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
             const ds = iso(d);
             return (
-              <div key={'h' + ds} className={'cdow' + (ds === tdy ? ' now' : '')}>{THDOW[i7(d)]} {d.getDate()}</div>
+              <div key={'h' + ds} className={'cdow' + (ds === tdy ? ' now' : '')}>{THDOW[dowIndex(d)]} {d.getDate()}</div>
             );
           })}
           {Array.from({ length: 7 }, (_, i) => addDays(ws, i)).map((d) => {
@@ -109,7 +100,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
                 {tasksOn(ds).map((t) => {
                   const tm = timesFor(t.id, ds);
                   return (
-                    <div key={t.id} className="cev" style={{ background: color(t) }} onClick={() => onEdit(t)}>
+                    <div key={t.id} className="cev" style={{ background: taskColor(t) }} onClick={() => onEdit(t)}>
                       {t.title}
                       {tm.length > 0 && <div className="cevt">{tm.join(' · ')}</div>}
                     </div>
@@ -133,14 +124,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
         });
         const segs: { key: string; taskId: string | null; s0: number; s1: number }[] = [];
         byTask.forEach((slots, taskId) => {
-          slots.sort((a, b) => a - b);
-          let i = 0;
-          while (i < slots.length) {
-            let j = i;
-            while (j + 1 < slots.length && slots[j + 1] === slots[j] + 1) j++;
-            segs.push({ key: `${taskId}-${slots[i]}`, taskId, s0: slots[i], s1: slots[j] });
-            i = j + 1;
-          }
+          mergeSlots(slots).forEach(({ s0, s1 }) => segs.push({ key: `${taskId}-${s0}`, taskId, s0, s1 }));
         });
         // กรอบชั่วโมงเดียวกับที่ตั้งไว้ในแท็บ Timebox — ขยายอัตโนมัติถ้ามีบล็อกนอกช่วง
         const base = loadHours();
@@ -154,7 +138,7 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
               <div className="dallday">
                 <span className="muted" style={{ fontSize: 11, alignSelf: 'center' }}>งานช่วงนี้:</span>
                 {evs.map((t) => (
-                  <div key={t.id} className="cev" style={{ background: color(t), marginBottom: 0 }} onClick={() => onEdit(t)}>{t.title}</div>
+                  <div key={t.id} className="cev" style={{ background: taskColor(t), marginBottom: 0 }} onClick={() => onEdit(t)}>{t.title}</div>
                 ))}
               </div>
             )}
@@ -174,12 +158,12 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
                     style={{
                       top: (seg.s0 / 2 - hourStart) * HH + 1,
                       height: ((seg.s1 - seg.s0 + 1) / 2) * HH - 2,
-                      background: isBuf ? undefined : t ? color(t) : '#8A93A0',
+                      background: isBuf ? undefined : t ? taskColor(t) : GREY,
                     }}
                     onClick={t ? () => onEdit(t) : undefined}
                   >
                     <b>{isBuf ? 'เวลาเผื่องานแทรก' : t?.title ?? '—'}</b>
-                    <span className="dtlt">{slotTime(seg.s0)}–{slotTime(seg.s1 + 1)}</span>
+                    <span className="dtlt">{slotRangeLabel(seg.s0, seg.s1)}</span>
                   </div>
                 );
               })}
@@ -193,5 +177,3 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
     </div>
   );
 }
-
-const i7 = (d: Date) => (d.getDay() + 6) % 7;

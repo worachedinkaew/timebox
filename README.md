@@ -58,21 +58,43 @@ npm run dev
 ## โครงไฟล์
 
 ```
-lib/supabase.ts   client (anon key)
-lib/types.ts      types + STATUSES/PRIORITIES/TASK_COLORS
-lib/db.ts         auth + loadAll + taskApi/blockApi/fieldApi
-app/page.tsx      auth gate + tabs + List view + task modal
-app/globals.css   design tokens + styles
-supabase/         schema + RLS
+app/
+  page.tsx (+ page.module.css)   auth gate + state + filter + tab routing
+  globals.css                    design tokens + shared primitives (.btn .chip .mono …)
+components/
+  views/                         view ละไฟล์ + .module.css คู่กัน
+    config.ts                    รายชื่อ tab (VIEWS)
+    ListView / KanbanView / GanttView / TimeboxView / CalendarView / DashboardView
+  modals/
+    TaskModal.tsx                ฟอร์มเพิ่ม/แก้งาน
+    FieldManager.tsx             ตั้งค่า status/priority + custom fields
+    Modal.module.css             โครง modal ที่ใช้ร่วมกัน
+  ui/
+    MultiSelect.tsx              dropdown เลือกหลายค่า (filter bar)
+    nav.module.css               แถบเลื่อนสัปดาห์ (Timebox + Gantt)
+  Login.tsx                      หน้าล็อกอิน
+hooks/
+  useUrlDate.ts                  state วันที่ sync กับ URL param (?w= ?g=)
+  useHours.ts                    ช่วงชั่วโมง Timebox (localStorage)
+  useTimeboxPaint.ts             engine ลากระบายเวลาในกริด Timebox
+lib/
+  supabase.ts                    client (anon key)
+  types.ts                       types + DEFAULT_STATUSES/PRIORITIES/TASK_COLORS
+  db.ts                          auth + loadAll + taskApi/blockApi/fieldApi
+  dates.ts / hours.ts / urlstate.ts / slots.ts / colors.ts / tasks.ts   utils
+supabase/                        schema + RLS + migrations
 ```
+
+สไตล์เป็น **CSS Modules** ต่อ component — globals.css เหลือเฉพาะ design tokens
+กับ shared primitives ที่ใช้ร่วมกันหลายที่ (`.btn .chip .dot .mono .muted .sp .scroll .placeholder .pbar .brand`)
 
 ## สถานะ view
 
-1. ✅ **Kanban** — คอลัมน์ตาม status + drag (@dnd-kit รองรับ touch) — `components/KanbanView.tsx`
-2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ เลื่อนช่วงวันที่ได้ครั้งละสัปดาห์ (`?g=`) — `components/GanttView.tsx`
+1. ✅ **Kanban** — คอลัมน์ตาม status + drag (@dnd-kit รองรับ touch) — `components/views/KanbanView.tsx`
+2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ เลื่อนช่วงวันที่ได้ครั้งละสัปดาห์ (`?g=`) — `components/views/GanttView.tsx`
 3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว, "เวลาเผื่องานแทรก" (buffer),
-   ช่วงชั่วโมงที่แสดงปรับได้ (เก็บใน localStorage) — `components/TimeboxView.tsx`
-4. ✅ **Calendar** — มุมมองเดือน / สัปดาห์ / วัน (`?cm=`) — `components/CalendarView.tsx`
+   ช่วงชั่วโมงที่แสดงปรับได้ (เก็บใน localStorage) — `components/views/TimeboxView.tsx`
+4. ✅ **Calendar** — มุมมองเดือน / สัปดาห์ / วัน (`?cm=`) — `components/views/CalendarView.tsx`
 5. ✅ **Filter** — ค้นหาชื่อ/รายละเอียด + กรอง status/priority แบบ multi-select ใช้ร่วมกันทุก view (`?q= ?st=a,b ?pr=x,y`)
 6. ✅ **Custom status/priority** — ปุ่ม "⚙ ตั้งค่า" เพิ่ม/ลบ/เปลี่ยนชื่อ/สี/ลำดับได้ (เช่นเพิ่ม Cancel)
    สถานะติดธง "เสร็จ" ได้เพื่อไม่ให้ขึ้น rail ใน Timebox — เก็บใน `user_options` ต่อ user
@@ -85,7 +107,7 @@ migration สำหรับ DB ที่สร้างก่อนหน้า
 
 และครบตามแผนเฟสแรกแล้ว:
 
-- ✅ **Field manager** — ปุ่ม "⚙ ฟิลด์" เพิ่ม/ลบ custom field — `components/FieldManager.tsx`
+- ✅ **Field manager** — ปุ่ม "⚙ ฟิลด์" เพิ่ม/ลบ custom field — `components/modals/FieldManager.tsx`
 - ✅ **URL query** — view (`?v=`), สัปดาห์ timebox (`?w=`), เดือนปฏิทิน (`?m=`) อยู่ใน URL แชร์ลิงก์/refresh ไม่หลุด
 
 prototype ต้นทางอยู่ที่ `docs/timebox-task-manager.html`

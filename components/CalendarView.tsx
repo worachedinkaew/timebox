@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { TASK_COLORS } from '../lib/types';
 import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, iso, mondayOf, todayDate } from '../lib/dates';
+import { THDOW, THMON, addDays, iso, mondayOf, pad, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
 
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
@@ -36,6 +36,21 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
 
   const tdy = iso(todayDate());
   const tasksOn = (ds: string) => db.tasks.filter((t) => t.start && t.end && ds >= t.start && ds <= t.end);
+
+  // เวลาไม่ได้อยู่ที่ตัวงาน แต่อยู่ที่บล็อกที่ระบายไว้ใน Timebox — รวม slot ติดกันเป็นช่วง เช่น 11:30–13:00
+  const slotTime = (s: number) => `${pad(Math.floor(s / 2))}:${s % 2 ? '30' : '00'}`;
+  const timesFor = (taskId: string | null, ds: string) => {
+    const slots = db.blocks.filter((b) => b.taskId === taskId && b.date === ds).map((b) => b.slot).sort((a, b) => a - b);
+    const out: string[] = [];
+    let i = 0;
+    while (i < slots.length) {
+      let j = i;
+      while (j + 1 < slots.length && slots[j + 1] === slots[j] + 1) j++;
+      out.push(`${slotTime(slots[i])}–${slotTime(slots[j] + 1)}`);
+      i = j + 1;
+    }
+    return out;
+  };
 
   const ws = mondayOf(anchor);
   const title =
@@ -90,26 +105,47 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
             return (
               <div key={ds} className={'ccell tall' + (ds === tdy ? ' tdy' : '')}>
                 <div className="dn">{d.getDate()}</div>
-                {tasksOn(ds).map((t) => (
-                  <div key={t.id} className="cev" style={{ background: color(t) }} onClick={() => onEdit(t)}>{t.title}</div>
-                ))}
+                {tasksOn(ds).map((t) => {
+                  const tm = timesFor(t.id, ds);
+                  return (
+                    <div key={t.id} className="cev" style={{ background: color(t) }} onClick={() => onEdit(t)}>
+                      {t.title}
+                      {tm.length > 0 && <div className="cevt">{tm.join(' · ')}</div>}
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
         </div>
       )}
 
-      {mode === 'day' && (
-        <div className="dayview">
-          {tasksOn(iso(anchor)).map((t) => (
-            <div key={t.id} className="cev big" style={{ background: color(t) }} onClick={() => onEdit(t)}>
-              {t.title}
-              {t.desc && <div className="dvd">{t.desc}</div>}
-            </div>
-          ))}
-          {!tasksOn(iso(anchor)).length && <div className="placeholder">ไม่มีงานในวันนี้</div>}
-        </div>
-      )}
+      {mode === 'day' && (() => {
+        const ds = iso(anchor);
+        const evs = tasksOn(ds);
+        const bufTimes = timesFor(null, ds);
+        return (
+          <div className="dayview">
+            {evs.map((t) => {
+              const tm = timesFor(t.id, ds);
+              return (
+                <div key={t.id} className="cev big" style={{ background: color(t) }} onClick={() => onEdit(t)}>
+                  {t.title}
+                  {tm.length > 0 && <div className="cevt">⏱ {tm.join(' · ')}</div>}
+                  {t.desc && <div className="dvd">{t.desc}</div>}
+                </div>
+              );
+            })}
+            {bufTimes.length > 0 && (
+              <div className="cev big buf">
+                เวลาเผื่องานแทรก
+                <div className="cevt">⏱ {bufTimes.join(' · ')}</div>
+              </div>
+            )}
+            {!evs.length && !bufTimes.length && <div className="placeholder">ไม่มีงานในวันนี้</div>}
+          </div>
+        );
+      })()}
     </div>
   );
 }

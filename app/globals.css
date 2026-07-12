@@ -147,6 +147,10 @@ table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
 .dayview{padding:8px 4px;max-width:560px}
 .cev.big{font-size:13px;padding:9px 12px;margin-bottom:7px;white-space:normal;border-radius:8px}
 .cev.big .dvd{font-weight:400;font-size:11.5px;opacity:.85;margin-top:3px}
+.cevt{font-family:var(--f-mono);font-weight:500;font-size:9.5px;opacity:.92;margin-top:1px}
+.cev.big .cevt{font-size:11.5px;margin-top:3px}
+.ccell.tall .cev{white-space:normal} /* week view มีที่พอ ให้เวลาขึ้นบรรทัดใหม่ได้ */
+.cev.big.buf{background:repeating-linear-gradient(45deg,#e9a23b 0 6px,#f2c777 6px 12px);color:#4a3a12;text-shadow:none;cursor:default}
 
 /* ---------- RESPONSIVE (web / iPad ปรับตาม fluid layout อยู่แล้ว — บล็อกนี้เก็บงานจอมือถือ) ---------- */
 @media (max-width:640px){

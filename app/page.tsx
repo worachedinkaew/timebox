@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authApi, loadAll, taskApi } from '../lib/db';
 import { STATUSES, PRIORITIES, TASK_COLORS } from '../lib/types';
-import type { DB, Task, Status, Priority } from '../lib/types';
+import type { Block, DB, Task, Status, Priority } from '../lib/types';
+import { fmtShort } from '../lib/dates';
+import KanbanView from '../components/KanbanView';
+import GanttView from '../components/GanttView';
+import TimeboxView from '../components/TimeboxView';
+import CalendarView from '../components/CalendarView';
 
 const VIEWS = [
   ['list', '≣ List'],
@@ -14,12 +19,6 @@ const VIEWS = [
 ] as const;
 type View = (typeof VIEWS)[number][0];
 
-const THMON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-function fmtShort(s: string | null) {
-  if (!s) return '—';
-  const p = s.split('-');
-  return `${+p[2]} ${THMON[+p[1] - 1]}`;
-}
 const st = (id: string) => STATUSES.find((x) => x.id === id) ?? STATUSES[0];
 const pr = (id: string) => PRIORITIES.find((x) => x.id === id) ?? PRIORITIES[0];
 
@@ -28,7 +27,7 @@ export default function Page() {
   const [ready, setReady] = useState(false);
   const [db, setDb] = useState<DB | null>(null);
   const [view, setView] = useState<View>('list');
-  const [editing, setEditing] = useState<Task | 'new' | null>(null);
+  const [editing, setEditing] = useState<{ task: Task | null; defaults?: Partial<Task> } | null>(null);
 
   useEffect(() => {
     authApi.getUser().then((u) => { setUserId(u?.id ?? null); setReady(true); });
@@ -46,6 +45,17 @@ export default function Page() {
     loadAll().then(setDb).catch(console.error);
   }, [userId]);
 
+  // optimistic update: อัปเดตหน้าจอทันที ยิง API ตามหลัง พังค่อยโหลดใหม่
+  const moveTask = useCallback((task: Task, status: Status) => {
+    const updated = { ...task, status };
+    setDb((d) => d && { ...d, tasks: d.tasks.map((t) => (t.id === task.id ? updated : t)) });
+    taskApi.save(updated).catch((e) => { console.error(e); refresh(); });
+  }, [refresh]);
+
+  const updateBlocks = useCallback((up: (blocks: Block[]) => Block[]) => {
+    setDb((d) => d && { ...d, blocks: up(d.blocks) });
+  }, []);
+
   if (!ready) return <div className="placeholder">กำลังโหลด…</div>;
   if (!userId) return <Login />;
 
@@ -60,25 +70,34 @@ export default function Page() {
         </div>
         <div className="sp" />
         <button className="btn" onClick={() => authApi.signOut()}>ออกจากระบบ</button>
-        <button className="btn pri" onClick={() => setEditing('new')}>+ งานใหม่</button>
+        <button className="btn pri" onClick={() => setEditing({ task: null })}>+ งานใหม่</button>
       </div>
 
       <div className="panel">
         {!db ? (
           <div className="placeholder">กำลังโหลดข้อมูล…</div>
         ) : view === 'list' ? (
-          <ListView db={db} onEdit={(t) => setEditing(t)} />
+          <ListView db={db} onEdit={(t) => setEditing({ task: t })} />
+        ) : view === 'kanban' ? (
+          <KanbanView
+            db={db}
+            onEdit={(t) => setEditing({ task: t })}
+            onAdd={(status) => setEditing({ task: null, defaults: { status } })}
+            onMove={moveTask}
+          />
+        ) : view === 'gantt' ? (
+          <GanttView db={db} onEdit={(t) => setEditing({ task: t })} />
+        ) : view === 'timebox' ? (
+          <TimeboxView db={db} updateBlocks={updateBlocks} onError={refresh} />
         ) : (
-          <div className="placeholder">
-            มุมมอง <b>{view}</b> — ต่อในเฟสถัดไป<br />
-            (logic พร้อมแล้วในไฟล์ prototype — ย้ายมาเป็น component ต่อได้เลย)
-          </div>
+          <CalendarView db={db} onEdit={(t) => setEditing({ task: t })} />
         )}
       </div>
 
       {editing && (
         <TaskModal
-          task={editing === 'new' ? null : editing}
+          task={editing.task}
+          defaults={editing.defaults}
           db={db!}
           onClose={() => setEditing(null)}
           onSaved={async () => { setEditing(null); await refresh(); }}
@@ -133,10 +152,10 @@ function renderCustom(t: Task, f: DB['fields'][number]) {
 }
 
 // ---------------- TASK MODAL ----------------
-function TaskModal({ task, db, onClose, onSaved }: { task: Task | null; db: DB; onClose: () => void; onSaved: () => void }) {
+function TaskModal({ task, defaults, db, onClose, onSaved }: { task: Task | null; defaults?: Partial<Task>; db: DB; onClose: () => void; onSaved: () => void }) {
   const today = new Date().toISOString().slice(0, 10);
   const [f, setF] = useState<Task>(
-    task ?? { id: crypto.randomUUID(), title: '', desc: '', start: today, end: today, status: 'todo', priority: 'med', manday: 1, cIdx: db.tasks.length, custom: {} }
+    task ?? { id: crypto.randomUUID(), title: '', desc: '', start: today, end: today, status: 'todo', priority: 'med', manday: 1, cIdx: db.tasks.length, custom: {}, ...defaults }
   );
   const set = (patch: Partial<Task>) => setF((prev) => ({ ...prev, ...patch }));
   const setCustom = (id: string, v: unknown) => setF((prev) => ({ ...prev, custom: { ...prev.custom, [id]: v } }));

@@ -66,14 +66,17 @@ app/globals.css   design tokens + styles
 supabase/         schema + RLS
 ```
 
-## เฟสถัดไป (แนะนำให้ทำใน Claude Code ในโฟลเดอร์นี้เลย)
+## สถานะ view
 
-1. **Kanban** — คอลัมน์ตาม status + drag (ใช้ @dnd-kit สำหรับ touch บนมือถือ)
-2. **Gantt** — แท่งตาม start/end (logic คำนวณ pixel อยู่ใน prototype)
-3. **Timebox** — พอร์ตกริดระบายเวลา + `blockApi` (manday × 8 = ชม.)
-4. **Calendar** — เดือน grid ตามช่วงวันที่
-5. **Field manager** — เพิ่ม/ลบ custom field (`fieldApi`)
-6. เก็บ view/สัปดาห์ที่เลือกไว้ใน URL query เพื่อแชร์ลิงก์/refresh ไม่หลุด
+1. ✅ **Kanban** — คอลัมน์ตาม status + drag (@dnd-kit รองรับ touch) — `components/KanbanView.tsx`
+2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ — `components/GanttView.tsx`
+3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว — `components/TimeboxView.tsx`
+   (ยังไม่มี "เวลาเผื่องานแทรก" จาก prototype — ต้องแก้ schema ให้ block ไม่ผูก task ก่อน)
+4. ✅ **Calendar** — เดือน grid ตามช่วงวันที่ — `components/CalendarView.tsx`
 
-โค้ดทั้ง 5 view เขียนไว้ครบแล้วในไฟล์ prototype (`timebox-task-manager.html`) —
-งานคือย้าย render logic มาเป็น React component แล้วต่อ `db.ts` แทน in-memory
+## เฟสถัดไป
+
+- **Field manager** — เพิ่ม/ลบ custom field (`fieldApi`)
+- เก็บ view/สัปดาห์ที่เลือกไว้ใน URL query เพื่อแชร์ลิงก์/refresh ไม่หลุด
+
+prototype ต้นทางอยู่ที่ `docs/timebox-task-manager.html`

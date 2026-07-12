@@ -81,6 +81,19 @@ export const blockApi = {
     const { error } = await supabase.from('blocks').delete().eq('date', date).eq('slot', slot);
     if (error) throw error;
   },
+  // batch สำหรับการลากระบายทีละหลายช่อง — บันทึกครั้งเดียวตอนปล่อยนิ้ว
+  async setMany(blocks: { taskId: string; date: string; slot: number }[]) {
+    const { error } = await supabase.from('blocks')
+      .upsert(blocks.map((b) => ({ task_id: b.taskId, date: b.date, slot: b.slot })), { onConflict: 'user_id,date,slot' });
+    if (error) throw error;
+  },
+  async removeMany(cells: { date: string; slot: number }[]) {
+    const results = await Promise.all(
+      cells.map((c) => supabase.from('blocks').delete().eq('date', c.date).eq('slot', c.slot)),
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) throw failed.error;
+  },
 };
 
 export const fieldApi = {

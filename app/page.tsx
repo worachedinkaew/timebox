@@ -11,6 +11,7 @@ import GanttView from '../components/GanttView';
 import TimeboxView from '../components/TimeboxView';
 import CalendarView from '../components/CalendarView';
 import FieldManager from '../components/FieldManager';
+import DashboardView from '../components/DashboardView';
 import { getParam, setParam } from '../lib/urlstate';
 
 const VIEWS = [
@@ -19,6 +20,7 @@ const VIEWS = [
   ['gantt', '▥ Gantt'],
   ['timebox', '▦ Timebox'],
   ['calendar', '▧ Calendar'],
+  ['dash', '▩ Dashboard'],
 ] as const;
 type View = (typeof VIEWS)[number][0];
 
@@ -158,6 +160,8 @@ export default function Page() {
           <GanttView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         ) : view === 'timebox' ? (
           <TimeboxView db={fdb} allTasks={db.tasks} updateBlocks={updateBlocks} onError={refresh} />
+        ) : view === 'dash' ? (
+          <DashboardView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         ) : (
           <CalendarView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         )}

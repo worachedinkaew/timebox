@@ -161,6 +161,17 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
     return m;
   }, [db.blocks]);
 
+  // สรุปเฉพาะสัปดาห์ที่แสดงอยู่
+  const weekDates = Array.from({ length: 7 }, (_, i) => iso(addDays(ws, i)));
+  const weekSet = new Set(weekDates);
+  let weekTaskH = 0, weekBufH = 0;
+  const dayTotals = new Map<string, number>();
+  db.blocks.forEach((b) => {
+    if (!weekSet.has(b.date)) return;
+    if (b.taskId) weekTaskH += 0.5; else weekBufH += 0.5;
+    dayTotals.set(b.date, (dayTotals.get(b.date) || 0) + 0.5);
+  });
+
   return (
     <div className="tbwrap">
       <div className="tbrail">
@@ -226,6 +237,10 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
             {Array.from({ length: 24 - hours.start }, (_, i) => { const h = hours.start + 1 + i; return <option key={h} value={h}>{pad(h)}:00</option>; })}
           </select>
         </div>
+        <div className="tbsum">
+          จองสัปดาห์นี้ <b>{weekTaskH + weekBufH} ชม.</b>
+          {weekBufH > 0 && <span className="muted"> — งาน {weekTaskH} · เผื่อแทรก {weekBufH}</span>}
+        </div>
         <div className="scroll">
           <div
             className="tgrid"
@@ -241,10 +256,12 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
             {Array.from({ length: 7 }, (_, dd) => {
               const d = addDays(ws, dd);
               const isToday = iso(d) === iso(todayDate());
+              const tot = dayTotals.get(iso(d)) || 0;
               return (
                 <div key={dd} className={'tgh' + (isToday ? ' now' : '')}>
                   {THDOW[dd]}{isToday ? ' • วันนี้' : ''}
                   <small>{d.getDate()} {THMON[d.getMonth()]}</small>
+                  <small className="dtot">{tot > 0 ? `${tot} ชม.` : ' '}</small>
                 </div>
               );
             })}

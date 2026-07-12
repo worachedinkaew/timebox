@@ -170,13 +170,20 @@ table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
 .calnav .sp{flex:1}
 .cdow.now{color:var(--accent);font-weight:700}
 .ccell.tall{min-height:300px}
-.dayview{padding:8px 4px;max-width:560px}
-.cev.big{font-size:13px;padding:9px 12px;margin-bottom:7px;white-space:normal;border-radius:8px}
-.cev.big .dvd{font-weight:400;font-size:11.5px;opacity:.85;margin-top:3px}
 .cevt{font-family:var(--f-mono);font-weight:500;font-size:9.5px;opacity:.92;margin-top:1px}
-.cev.big .cevt{font-size:11.5px;margin-top:3px}
 .ccell.tall .cev{white-space:normal} /* week view มีที่พอ ให้เวลาขึ้นบรรทัดใหม่ได้ */
-.cev.big.buf{background:repeating-linear-gradient(45deg,#e9a23b 0 6px,#f2c777 6px 12px);color:#4a3a12;text-shadow:none;cursor:default}
+
+/* day view = timeline รายชั่วโมง */
+.dayview{padding:8px 4px 16px}
+.dallday{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;padding-left:56px}
+.dtl{position:relative;margin-top:14px}
+.dtlrow{position:absolute;left:56px;right:0;border-top:1px solid var(--line)}
+.dtlrow span{position:absolute;left:-56px;top:-7px;width:48px;text-align:right;font-family:var(--f-mono);font-size:9.5px;color:var(--ink-faint)}
+.dtlev{position:absolute;left:64px;right:8px;border-radius:7px;color:#fff;padding:3px 10px;font-size:12px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(20,28,45,.18);display:flex;flex-direction:column;justify-content:center;gap:0;z-index:2}
+.dtlev b{font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dtlev .dtlt{font-family:var(--f-mono);font-size:10px;opacity:.9}
+.dtlev.buf{background:repeating-linear-gradient(45deg,#e9a23b 0 6px,#f2c777 6px 12px);color:#4a3a12;cursor:default;box-shadow:none}
+.dtlempty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);font-size:12.5px;padding-left:56px;text-align:center}
 
 /* ---------- RESPONSIVE (web / iPad ปรับตาม fluid layout อยู่แล้ว — บล็อกนี้เก็บงานจอมือถือ) ---------- */
 @media (max-width:640px){

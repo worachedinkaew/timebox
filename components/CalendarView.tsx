@@ -123,26 +123,67 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
       {mode === 'day' && (() => {
         const ds = iso(anchor);
         const evs = tasksOn(ds);
-        const bufTimes = timesFor(null, ds);
+        // แปลงบล็อก 30 นาทีของวันนั้นเป็นช่วงต่อเนื่องต่องาน แล้ววางบน timeline
+        const byTask = new Map<string | null, number[]>();
+        db.blocks.filter((b) => b.date === ds).forEach((b) => {
+          const l = byTask.get(b.taskId) ?? [];
+          l.push(b.slot);
+          byTask.set(b.taskId, l);
+        });
+        const segs: { key: string; taskId: string | null; s0: number; s1: number }[] = [];
+        byTask.forEach((slots, taskId) => {
+          slots.sort((a, b) => a - b);
+          let i = 0;
+          while (i < slots.length) {
+            let j = i;
+            while (j + 1 < slots.length && slots[j + 1] === slots[j] + 1) j++;
+            segs.push({ key: `${taskId}-${slots[i]}`, taskId, s0: slots[i], s1: slots[j] });
+            i = j + 1;
+          }
+        });
+        const hourStart = segs.length ? Math.min(8, Math.floor(Math.min(...segs.map((s) => s.s0)) / 2)) : 8;
+        const hourEnd = segs.length ? Math.max(18, Math.ceil((Math.max(...segs.map((s) => s.s1)) + 1) / 2)) : 18;
+        const HH = 44; // px ต่อ 1 ชั่วโมง
+        const taskById = new Map(db.tasks.map((t) => [t.id, t]));
         return (
           <div className="dayview">
-            {evs.map((t) => {
-              const tm = timesFor(t.id, ds);
-              return (
-                <div key={t.id} className="cev big" style={{ background: color(t) }} onClick={() => onEdit(t)}>
-                  {t.title}
-                  {tm.length > 0 && <div className="cevt">⏱ {tm.join(' · ')}</div>}
-                  {t.desc && <div className="dvd">{t.desc}</div>}
-                </div>
-              );
-            })}
-            {bufTimes.length > 0 && (
-              <div className="cev big buf">
-                เวลาเผื่องานแทรก
-                <div className="cevt">⏱ {bufTimes.join(' · ')}</div>
+            {evs.length > 0 && (
+              <div className="dallday">
+                <span className="muted" style={{ fontSize: 11, alignSelf: 'center' }}>งานช่วงนี้:</span>
+                {evs.map((t) => (
+                  <div key={t.id} className="cev" style={{ background: color(t), marginBottom: 0 }} onClick={() => onEdit(t)}>{t.title}</div>
+                ))}
               </div>
             )}
-            {!evs.length && !bufTimes.length && <div className="placeholder">ไม่มีงานในวันนี้</div>}
+            <div className="dtl" style={{ height: (hourEnd - hourStart) * HH }}>
+              {Array.from({ length: hourEnd - hourStart + 1 }, (_, h) => (
+                <div key={h} className="dtlrow" style={{ top: h * HH }}>
+                  <span>{pad(hourStart + h)}:00</span>
+                </div>
+              ))}
+              {segs.map((seg) => {
+                const t = seg.taskId ? taskById.get(seg.taskId) : undefined;
+                const isBuf = seg.taskId === null;
+                return (
+                  <div
+                    key={seg.key}
+                    className={'dtlev' + (isBuf ? ' buf' : '')}
+                    style={{
+                      top: (seg.s0 / 2 - hourStart) * HH + 1,
+                      height: ((seg.s1 - seg.s0 + 1) / 2) * HH - 2,
+                      background: isBuf ? undefined : t ? color(t) : '#8A93A0',
+                    }}
+                    onClick={t ? () => onEdit(t) : undefined}
+                  >
+                    <b>{isBuf ? 'เวลาเผื่องานแทรก' : t?.title ?? '—'}</b>
+                    <span className="dtlt">{slotTime(seg.s0)}–{slotTime(seg.s1 + 1)}</span>
+                  </div>
+                );
+              })}
+              {!segs.length && (
+                <div className="dtlempty">ยังไม่ได้จองเวลาในวันนี้ — ไประบายเวลาให้งานในแท็บ Timebox</div>
+              )}
+            </div>
           </div>
         );
       })()}

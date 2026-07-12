@@ -1,0 +1,15 @@
+.msel{position:relative}
+.msbtn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f-body)}
+.msbtn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.msbtn .car{font-size:10px;color:var(--ink-faint)}
+.mpanel{position:absolute;top:calc(100% + 5px);left:0;z-index:40;background:var(--surface);border:1px solid var(--line-strong);border-radius:11px;box-shadow:0 14px 40px -18px rgba(20,28,45,.4);padding:7px;min-width:170px}
+.mopt{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap}
+.mopt input{width:auto;min-width:0;flex:none;margin:0}
+.mopt:hover{background:#f5f6f8}
+.mclear{width:100%;border:none;border-top:1px solid var(--line);background:transparent;color:var(--ink-faint);padding:7px 0 3px;margin-top:4px;cursor:pointer;font-size:12px}
+.mclear:hover{color:var(--coral)}
+
+@media (max-width:640px){
+  .msel{flex:1}
+  .msbtn{width:100%}
+}

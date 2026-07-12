@@ -7,6 +7,7 @@ import { optById } from '@/lib/types';
 import type { DB, OptionDef, Status, Task } from '@/lib/types';
 import { fmtShort } from '@/lib/dates';
 import { chipStyle } from '@/lib/colors';
+import styles from './KanbanView.module.css';
 
 export default function KanbanView({ db, onEdit, onAdd, onMove }: {
   db: DB;
@@ -32,7 +33,7 @@ export default function KanbanView({ db, onEdit, onAdd, onMove }: {
   return (
     <div className="scroll">
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="kb">
+        <div className={styles.kb}>
           {db.statuses.map((s) => (
             <Column
               key={s.id}
@@ -58,16 +59,16 @@ function Column({ status, tasks, priorities, onAdd, onCardClick }: {
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status.id });
   return (
-    <div className={'kcol' + (isOver ? ' drag' : '')}>
-      <div className="khead">
+    <div className={`${styles.kcol}${isOver ? ' ' + styles.drag : ''}`}>
+      <div className={styles.khead}>
         <span className="dot" style={{ background: status.color }} />
         {status.label}
-        <span className="ct">{tasks.length}</span>
+        <span className={styles.ct}>{tasks.length}</span>
       </div>
-      <div className="kbody" ref={setNodeRef}>
+      <div className={styles.kbody} ref={setNodeRef}>
         {tasks.map((t) => <Card key={t.id} task={t} priorities={priorities} onClick={() => onCardClick(t)} />)}
       </div>
-      <button className="kadd" onClick={() => onAdd(status.id)}>+ เพิ่มงาน</button>
+      <button className={styles.kadd} onClick={() => onAdd(status.id)}>+ เพิ่มงาน</button>
     </div>
   );
 }
@@ -81,15 +82,15 @@ function Card({ task, priorities, onClick }: { task: Task; priorities: OptionDef
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={'kcard' + (isDragging ? ' dragging' : '')}
+      className={`${styles.kcard}${isDragging ? ' ' + styles.dragging : ''}`}
       style={transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined}
     >
-      <div className="kt">{task.title}</div>
-      <div className="meta">
+      <div className={styles.kt}>{task.title}</div>
+      <div className={styles.meta}>
         <span className="chip" style={chipStyle(p)}>{p.label}</span>
         <span className="mono" style={{ color: 'var(--ink-soft)' }}>{task.manday} md</span>
       </div>
-      <div className="meta"><span className="dts">{fmtShort(task.start)} → {fmtShort(task.end)}</span></div>
+      <div className={styles.meta}><span className={styles.dts}>{fmtShort(task.start)} → {fmtShort(task.end)}</span></div>
     </div>
   );
 }

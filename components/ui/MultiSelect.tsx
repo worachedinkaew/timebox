@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { OptionDef } from '@/lib/types';
+import styles from './MultiSelect.module.css';
 
 export default function MultiSelect({ placeholder, options, value, onChange }: {
   placeholder: string;
@@ -34,21 +35,21 @@ export default function MultiSelect({ placeholder, options, value, onChange }: {
     : `${placeholder} · ${value.length}`;
 
   return (
-    <div className="msel" ref={ref}>
-      <button type="button" className={'msbtn' + (value.length ? ' active' : '')} onClick={() => setOpen(!open)}>
-        {label} <span className="car">▾</span>
+    <div className={styles.msel} ref={ref}>
+      <button type="button" className={`${styles.msbtn}${value.length ? ' ' + styles.active : ''}`} onClick={() => setOpen(!open)}>
+        {label} <span className={styles.car}>▾</span>
       </button>
       {open && (
-        <div className="mpanel">
+        <div className={styles.mpanel}>
           {options.map((o) => (
-            <label key={o.id} className="mopt">
+            <label key={o.id} className={styles.mopt}>
               <input type="checkbox" checked={value.includes(o.id)} onChange={() => toggle(o.id)} />
               <span className="dot" style={{ background: o.color }} />
               {o.label}
             </label>
           ))}
           {value.length > 0 && (
-            <button type="button" className="mclear" onClick={() => onChange([])}>ล้างที่เลือก</button>
+            <button type="button" className={styles.mclear} onClick={() => onChange([])}>ล้างที่เลือก</button>
           )}
         </div>
       )}

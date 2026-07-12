@@ -233,7 +233,11 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
         <div className="scroll">
           <div
             className="tgrid"
-            style={{ gridTemplateColumns: '44px repeat(7, minmax(70px, 1fr))' }}
+            style={{
+              gridTemplateColumns: '44px repeat(7, minmax(70px, 1fr))',
+              // ล็อก touch เฉพาะตอนพร้อมระบาย — ไม่งั้นมือถือจะเลื่อน/แพนกริดไม่ได้เลย
+              touchAction: sel || erase ? 'none' : 'auto',
+            }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
           >

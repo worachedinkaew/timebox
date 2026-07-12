@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { STATUSES } from '../lib/types';
 import type { DB, Task } from '../lib/types';
-import { THDOW, THMON, addDays, dayDiff, iso, mondayOf, parseISO, todayDate } from '../lib/dates';
+import { THDOW, THMON, addDays, dayDiff, fmtShort, iso, mondayOf, parseISO, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
 
-const DW = 34;    // px ต่อ 1 วัน
-const DAYS = 56;  // หน้าต่างครั้งละ 8 สัปดาห์ เลื่อนได้ด้วยปุ่ม ‹ ›
+const DW = 36;    // px ต่อ 1 วัน
+const DAYS = 28;  // หน้าต่างครั้งละ 4 สัปดาห์ เลื่อนทีละสัปดาห์ด้วย ‹ ›
 
 const defaultStart = () => iso(addDays(mondayOf(todayDate()), -7));
 
@@ -34,14 +34,20 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
     const d = addDays(s0, i);
     return { d, we: d.getDay() === 0 || d.getDay() === 6, td: iso(d) === tdy };
   });
+  // แถวเดือนคาดบนหัววัน — รวมวันติดกันที่อยู่เดือนเดียวกันเป็นแถบเดียว
+  const monthSegs: { label: string; span: number }[] = [];
+  dayCells.forEach((c) => {
+    const label = `${THMON[c.d.getMonth()]} ${c.d.getFullYear()}`;
+    const last = monthSegs[monthSegs.length - 1];
+    if (last && last.label === label) last.span++;
+    else monthSegs.push({ label, span: 1 });
+  });
 
   return (
     <div>
       <div className="tbnav" style={{ padding: '10px 12px 8px' }}>
         <button onClick={() => nav(-7)}>‹</button>
-        <span className="wk">
-          {s0.getDate()} {THMON[s0.getMonth()]} – {parseISO(endIso).getDate()} {THMON[parseISO(endIso).getMonth()]} {parseISO(endIso).getFullYear()}
-        </span>
+        <span className="wk">{fmtShort(start)} – {fmtShort(endIso)} {parseISO(endIso).getFullYear()}</span>
         <button onClick={() => nav(7)}>›</button>
         {start !== defaultStart() && (
           <button style={{ width: 'auto', padding: '0 10px' }} onClick={() => nav(dayDiff(start, defaultStart()))}>วันนี้</button>
@@ -52,11 +58,16 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
           <div className="grow ghead">
             <div className="gname">งาน</div>
             <div className="gtrack" style={{ width: DAYS * DW }}>
-              {dayCells.map((c, i) => (
-                <span key={i} className={'gcell' + (c.we ? ' we' : '') + (c.td ? ' tdy' : '')} style={{ width: DW }}>
-                  {THDOW[(c.d.getDay() + 6) % 7]}<br />{c.d.getDate()}
-                </span>
-              ))}
+              <div className="gmons">
+                {monthSegs.map((m, i) => <span key={i} style={{ width: m.span * DW }}>{m.label}</span>)}
+              </div>
+              <div>
+                {dayCells.map((c, i) => (
+                  <span key={i} className={'gcell' + (c.we ? ' we' : '') + (c.td ? ' tdy' : '')} style={{ width: DW }}>
+                    {THDOW[(c.d.getDay() + 6) % 7]}<br /><b>{c.d.getDate()}</b>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           {!tasks.length && <div className="placeholder">ไม่มีงานในช่วงนี้ — เลื่อนดูช่วงอื่นด้วยปุ่ม ‹ ›</div>}
@@ -72,11 +83,12 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
                 <div className="gtrack" style={{ width: DAYS * DW }}>
                   <div className="gbarrow">
                     {dayCells.map((c, j) => (
-                      <div key={j} className={'gbg' + (c.we ? ' we' : '')} style={{ left: j * DW, width: DW }} />
+                      <div key={j} className={'gbg' + (c.we ? ' we' : '') + (c.td ? ' td' : '')} style={{ left: j * DW, width: DW }} />
                     ))}
                     {toff >= 0 && toff < DAYS && <div className="gtoday" style={{ left: toff * DW + DW / 2 }} />}
                     <div
                       className="gbar"
+                      title={`${t.title} · ${fmtShort(t.start)} – ${fmtShort(t.end)}`}
                       style={{ left: off * DW + 2, width: len * DW - 4, background: s.color }}
                       onClick={() => onEdit(t)}
                     >

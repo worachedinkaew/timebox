@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { blockApi } from '../lib/db';
 import { TASK_COLORS } from '../lib/types';
 import type { Block, DB, Task } from '../lib/types';
-import { THDOW, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
+import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
 import { loadHours, saveHours } from '../lib/hours';
 
@@ -238,9 +238,16 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
             onPointerMove={onPointerMove}
           >
             <div />
-            {Array.from({ length: 7 }, (_, dd) => (
-              <div key={dd} className="tgh">{THDOW[dd]}<small>{addDays(ws, dd).getDate()}</small></div>
-            ))}
+            {Array.from({ length: 7 }, (_, dd) => {
+              const d = addDays(ws, dd);
+              const isToday = iso(d) === iso(todayDate());
+              return (
+                <div key={dd} className={'tgh' + (isToday ? ' now' : '')}>
+                  {THDOW[dd]}{isToday ? ' • วันนี้' : ''}
+                  <small>{d.getDate()} {THMON[d.getMonth()]}</small>
+                </div>
+              );
+            })}
             {Array.from({ length: (hours.end - hours.start) * 2 }, (_, i) => {
               const s = hours.start * 2 + i;
               const hr = s % 2 === 0;
@@ -257,7 +264,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
                     return (
                       <div
                         key={dz}
-                        className={'tcell' + (hr ? ' hr' : '') + (isBuf ? ' bf' : '')}
+                        className={'tcell' + (hr ? ' hr' : '') + (isBuf ? ' bf' : '') + (date === iso(todayDate()) ? ' td' : '')}
                         data-date={date}
                         data-slot={s}
                         style={t ? { background: color(t) } : undefined}

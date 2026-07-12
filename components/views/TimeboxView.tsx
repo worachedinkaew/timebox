@@ -9,6 +9,8 @@ import { doneStatusIds } from '@/lib/tasks';
 import { useHours } from '@/hooks/useHours';
 import { useUrlDate } from '@/hooks/useUrlDate';
 import { useTimeboxPaint } from '@/hooks/useTimeboxPaint';
+import nav from '@/components/ui/nav.module.css';
+import styles from './TimeboxView.module.css';
 
 export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   db: DB;               // tasks ผ่าน filter แล้ว — ใช้กับ rail
@@ -59,10 +61,10 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   });
 
   return (
-    <div className="tbwrap">
-      <div className="tbrail">
+    <div className={styles.tbwrap}>
+      <div className={styles.tbrail}>
         <h4>งาน (manday → ชั่วโมง)</h4>
-        <p className="hint" style={warn ? { color: 'var(--coral)' } : undefined}>
+        <p className={styles.hint} style={warn ? { color: 'var(--coral)' } : undefined}>
           เลือกงาน แล้ว<b>ลากบนตาราง</b>เพื่อจองเวลา · ลากทับซ้ำ = ลบ · 1 ช่อง = 30 นาที
         </p>
         {railTasks.map((t) => {
@@ -74,45 +76,45 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
           return (
             <div
               key={t.id}
-              className={'trow' + (sel === t.id ? ' sel' : '')}
+              className={`${styles.trow}${sel === t.id ? ' ' + styles.sel : ''}`}
               onClick={() => { setErase(false); setSel(sel === t.id ? null : t.id); }}
             >
-              <div className="r1">
-                <span className="sw" style={{ background: taskColor(t) }} />
-                <span className="nm">{t.title}</span>
+              <div className={styles.r1}>
+                <span className={styles.sw} style={{ background: taskColor(t) }} />
+                <span className={styles.nm}>{t.title}</span>
               </div>
-              <div className="r2">
+              <div className={styles.r2}>
                 {planned} / {est} ชม.
-                <span className={'rem' + (over ? ' warn' : '')}>{over ? `เกิน ${-rem}` : `เหลือ ${rem}`}</span>
+                <span className={`${styles.rem}${over ? ' ' + styles.warn : ''}`}>{over ? `เกิน ${-rem}` : `เหลือ ${rem}`}</span>
               </div>
-              <div className="gz"><span style={{ width: `${pct}%`, background: taskColor(t) }} /></div>
+              <div className={styles.gz}><span style={{ width: `${pct}%`, background: taskColor(t) }} /></div>
             </div>
           );
         })}
         <div
-          className={'trow buf' + (sel === BUFID ? ' sel' : '')}
+          className={`${styles.trow} ${styles.buf}${sel === BUFID ? ' ' + styles.sel : ''}`}
           onClick={() => { setErase(false); setSel(sel === BUFID ? null : BUFID); }}
         >
-          <div className="r1">
-            <span className="sw" style={{ background: 'repeating-linear-gradient(45deg,#e9a23b 0 4px,#f2c777 4px 8px)' }} />
-            <span className="nm">เวลาเผื่องานแทรก</span>
+          <div className={styles.r1}>
+            <span className={styles.sw} style={{ background: 'repeating-linear-gradient(45deg,#e9a23b 0 4px,#f2c777 4px 8px)' }} />
+            <span className={styles.nm}>เวลาเผื่องานแทรก</span>
           </div>
-          <div className="r2">
+          <div className={styles.r2}>
             กันไว้ให้งานด่วน
-            <span className="rem">{plannedHours.get(BUFID) || 0} ชม.</span>
+            <span className={styles.rem}>{plannedHours.get(BUFID) || 0} ชม.</span>
           </div>
         </div>
-        <div className="tbtool">
-          <button className={erase ? 'on' : ''} onClick={() => { setErase(!erase); if (!erase) setSel(null); }}>
+        <div className={styles.tbtool}>
+          <button className={erase ? styles.on : ''} onClick={() => { setErase(!erase); if (!erase) setSel(null); }}>
             🧽 ยางลบ
           </button>
         </div>
       </div>
 
-      <div className="tbmain">
-        <div className="tbnav">
+      <div className={styles.tbmain}>
+        <div className={nav.tbnav}>
           <button onClick={() => setWeekStart(iso(addDays(ws, -7)))}>‹</button>
-          <span className="wk">{fmtShort(weekStart)} – {fmtShort(iso(addDays(ws, 6)))}</span>
+          <span className={nav.wk}>{fmtShort(weekStart)} – {fmtShort(iso(addDays(ws, 6)))}</span>
           <button onClick={() => setWeekStart(iso(addDays(ws, 7)))}>›</button>
           <div className="sp" />
           <select value={hours.start} onChange={(e) => { const s = +e.target.value; setHours({ start: s, end: Math.max(hours.end, s + 1) }); }}>
@@ -123,13 +125,13 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
             {Array.from({ length: 24 - hours.start }, (_, i) => { const h = hours.start + 1 + i; return <option key={h} value={h}>{pad(h)}:00</option>; })}
           </select>
         </div>
-        <div className="tbsum">
+        <div className={styles.tbsum}>
           จองสัปดาห์นี้ <b>{weekTaskH + weekBufH} ชม.</b>
           {weekBufH > 0 && <span className="muted"> — งาน {weekTaskH} · เผื่อแทรก {weekBufH}</span>}
         </div>
         <div className="scroll">
           <div
-            className="tgrid"
+            className={styles.tgrid}
             style={{
               gridTemplateColumns: '44px repeat(7, minmax(70px, 1fr))',
               // ล็อก touch เฉพาะตอนพร้อมระบาย — ไม่งั้นมือถือจะเลื่อน/แพนกริดไม่ได้เลย
@@ -144,7 +146,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
               const isToday = iso(d) === iso(todayDate());
               const tot = dayTotals.get(iso(d)) || 0;
               return (
-                <div key={dd} className={'tgh' + (isToday ? ' now' : '')}>
+                <div key={dd} className={`${styles.tgh}${isToday ? ' ' + styles.now : ''}`}>
                   {THDOW[dd]}{isToday ? ' • วันนี้' : ''}
                   <small>{d.getDate()} {THMON[d.getMonth()]}</small>
                   <small className="dtot">{tot > 0 ? `${tot} ชม.` : ' '}</small>
@@ -156,7 +158,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
               const hr = s % 2 === 0;
               return (
                 <Fragment key={s}>
-                  <div className={'tgl' + (hr ? ' hr' : '')}>{hr ? `${pad(s / 2)}:00` : ''}</div>
+                  <div className={`${styles.tgl}${hr ? ' ' + styles.hr : ''}`}>{hr ? `${pad(s / 2)}:00` : ''}</div>
                   {Array.from({ length: 7 }, (_, dz) => {
                     const date = iso(addDays(ws, dz));
                     const blk = blockMap.get(cellKey(date, s));
@@ -167,12 +169,12 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
                     return (
                       <div
                         key={dz}
-                        className={'tcell' + (hr ? ' hr' : '') + (isBuf ? ' bf' : '') + (date === iso(todayDate()) ? ' td' : '')}
+                        className={`${styles.tcell}${hr ? ' ' + styles.hr : ''}${isBuf ? ' ' + styles.bf : ''}${date === iso(todayDate()) ? ' ' + styles.td : ''}`}
                         data-date={date}
                         data-slot={s}
                         style={t ? { background: taskColor(t) } : undefined}
                       >
-                        {showLabel && <span className="lb">{t!.title}</span>}
+                        {showLabel && <span className={styles.lb}>{t!.title}</span>}
                       </div>
                     );
                   })}

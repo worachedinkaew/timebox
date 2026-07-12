@@ -1,0 +1,37 @@
+/* minmax(0,1fr) สำคัญ — ไม่งั้นคอลัมน์กริดไม่ยอมแคบกว่า min-width ของตาราง แล้วล้นไปโดน panel ตัดทิ้ง */
+.tbwrap{display:grid;grid-template-columns:230px minmax(0,1fr)}
+.tbrail{border-right:1px solid var(--line);padding:13px 12px}
+.tbrail h4{font-family:var(--f-disp);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 4px}
+.tbrail .hint{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 11px}
+.trow{border:1.5px solid var(--line);border-radius:10px;padding:8px 9px;margin-bottom:7px;cursor:pointer}
+.trow.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.trow .r1{display:flex;align-items:center;gap:7px}
+.trow .sw{width:11px;height:11px;border-radius:3px;flex:none}
+.trow .nm{font-weight:600;font-size:12.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .r2{display:flex;font-family:var(--f-mono);font-size:10.5px;color:var(--ink-soft);margin-top:5px}
+.trow .rem{margin-left:auto;color:var(--ink)}
+.trow .rem.warn{color:var(--coral);font-weight:600}
+.gz{height:5px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+.gz>span{display:block;height:100%}
+.trow.buf{background:repeating-linear-gradient(45deg,#fdf6e9 0 7px,#faf0da 7px 14px)}
+.tbtool{display:flex;gap:6px;margin-top:10px}
+.tbtool button{flex:1;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:6px;font-size:12px;color:var(--ink-soft);cursor:pointer}
+.tbtool button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tbmain{padding:8px 12px}
+.tgrid{display:grid;user-select:none;min-width:600px} /* touch-action คุมจาก component ตามโหมดที่เลือก */
+.tgh{font-family:var(--f-disp);font-weight:600;font-size:11.5px;text-align:center;padding:5px 2px 7px}
+.tgh small{display:block;font-family:var(--f-mono);font-weight:400;font-size:9px;color:var(--ink-faint)}
+.tgh.now{color:var(--accent)}
+.tgh.now small{color:var(--accent);font-weight:600}
+.tgh .dtot{color:var(--teal, #2A9D8F);font-weight:600;min-height:12px}
+.tcell.td{background-color:#f2f5fa} /* คอลัมน์วันนี้ */
+.tbsum{font-size:12px;color:var(--ink-soft);padding:0 2px 8px}
+.tbsum b{font-family:var(--f-disp)}
+.tgl{font-family:var(--f-mono);font-size:9.5px;color:var(--ink-faint);text-align:right;padding-right:6px;height:24px;display:flex;align-items:center;justify-content:flex-end}
+.tgl.hr{color:var(--ink)}
+.tcell{height:24px;border-left:1px solid var(--line);border-top:1px dotted var(--line);cursor:crosshair;position:relative}
+.tcell.hr{border-top:1px solid var(--line-strong)}
+.tcell:last-child{border-right:1px solid var(--line)}
+.tcell .lb{position:absolute;inset:0;padding:1px 4px;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;pointer-events:none;text-shadow:0 1px 1px rgba(0,0,0,.18)}
+.tcell.bf{background-image:repeating-linear-gradient(45deg,#B9C0CC 0 6px,#CDD3DC 6px 12px)}
+@media(max-width:640px){.tbwrap{grid-template-columns:1fr}.tbrail{border-right:none;border-bottom:1px solid var(--line)}}

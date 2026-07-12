@@ -16,6 +16,7 @@ import TaskModal from '@/components/modals/TaskModal';
 import FieldManager from '@/components/modals/FieldManager';
 import MultiSelect from '@/components/ui/MultiSelect';
 import Login from '@/components/Login';
+import styles from './page.module.css';
 
 export default function Page() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -91,12 +92,12 @@ export default function Page() {
   if (!userId) return <Login />;
 
   return (
-    <div className="app">
-      <div className="top">
+    <div className={styles.app}>
+      <div className={styles.top}>
         <div className="brand"><span className="mk" />Timebox</div>
-        <div className="tabs">
+        <div className={styles.tabs}>
           {VIEWS.map(([v, label]) => (
-            <button key={v} className={view === v ? 'on' : ''} onClick={() => switchView(v)}>{label}</button>
+            <button key={v} className={view === v ? styles.on : ''} onClick={() => switchView(v)}>{label}</button>
           ))}
         </div>
         <div className="sp" />
@@ -105,7 +106,7 @@ export default function Page() {
         <button className="btn pri" onClick={() => setEditing({ task: null })}>+ งานใหม่</button>
       </div>
 
-      <div className="fbar">
+      <div className={styles.fbar}>
         <input
           type="search"
           placeholder="🔍 ค้นหางาน…"
@@ -137,7 +138,7 @@ export default function Page() {
         )}
       </div>
 
-      <div className="panel">
+      <div className={styles.panel}>
         {!db || !fdb ? (
           <div className="placeholder">กำลังโหลดข้อมูล…</div>
         ) : view === 'list' ? (

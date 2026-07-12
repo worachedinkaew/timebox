@@ -6,43 +6,24 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased;font-size:14px}
 button{font-family:var(--f-body)}
-.app{max-width:1160px;margin:0 auto;padding:16px 16px 60px}
-.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+
+/* shared primitives — ตั้งใจให้เป็น global เพราะใช้ร่วมกันหลาย component
+   สไตล์เฉพาะของแต่ละ view/component อยู่ใน .module.css คู่กับไฟล์นั้น ๆ */
 .brand{display:flex;align-items:center;gap:9px;font-family:var(--f-disp);font-weight:700;font-size:17px}
 .brand .mk{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#4d6288);position:relative}
 .brand .mk::after{content:"";position:absolute;left:5px;top:5px;width:8px;height:8px;background:#fff;border-radius:2px;opacity:.9}
-.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
-.tabs button{border:none;background:transparent;padding:7px 13px;border-radius:7px;cursor:pointer;color:var(--ink-soft);font-size:13px;font-weight:500}
-.tabs button.on{background:var(--accent);color:#fff}
 .sp{flex:1}
 .btn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer;font-size:13px;font-weight:500}
 .btn:hover{border-color:var(--accent)}
 .btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
-.panel{background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;box-shadow:0 20px 50px -34px rgba(20,28,45,.35)}
-.fbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-/* เจาะจงลูกตรงเท่านั้น — ไม่งั้นไปโดน checkbox ในแผง multi-select */
-.fbar > input{flex:1;min-width:160px;border:1px solid var(--line-strong);border-radius:9px;padding:8px 12px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--ink)}
-.fbar > input:focus{outline:none;border-color:var(--accent)}
-
 .scroll{overflow:auto}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%}
 .mono{font-family:var(--f-mono);font-size:12px}.muted{color:var(--ink-faint)}
 .placeholder{padding:60px 20px;text-align:center;color:var(--ink-faint)}
-
 .pbar{width:3px;height:16px;border-radius:2px}
 
-
-/* ---------- RESPONSIVE (web / iPad ปรับตาม fluid layout อยู่แล้ว — บล็อกนี้เก็บงานจอมือถือ) ---------- */
 @media (max-width:640px){
-  .app{padding:10px 10px 40px}
-  .top{gap:7px;margin-bottom:10px}
   .brand{font-size:15px}
-  /* แถว 1: โลโก้ + ปุ่ม, แถว 2: tab กางเต็มกว้าง */
-  .tabs{order:5;width:100%;justify-content:space-between}
-  .tabs button{padding:6px 8px;font-size:12px;flex:1;text-align:center;justify-content:center}
   .btn{padding:7px 10px;font-size:12.5px}
-  .fbar{gap:6px}
-  .fbar > input{flex:1 1 100%;font-size:16px} /* ≥16px กัน iOS ซูมตอนโฟกัส */
 }
-

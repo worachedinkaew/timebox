@@ -149,7 +149,7 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
                 <div key={dd} className={`${styles.tgh}${isToday ? ' ' + styles.now : ''}`}>
                   {THDOW[dd]}{isToday ? ' • วันนี้' : ''}
                   <small>{d.getDate()} {THMON[d.getMonth()]}</small>
-                  <small className="dtot">{tot > 0 ? `${tot} ชม.` : ' '}</small>
+                  <small className={styles.dtot}>{tot > 0 ? `${tot} ชม.` : ' '}</small>
                 </div>
               );
             })}

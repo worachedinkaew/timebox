@@ -1,0 +1,20 @@
+.app{max-width:1160px;margin:0 auto;padding:16px 16px 60px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.tabs button{border:none;background:transparent;padding:7px 13px;border-radius:7px;cursor:pointer;color:var(--ink-soft);font-size:13px;font-weight:500}
+.tabs button.on{background:var(--accent);color:#fff}
+.panel{background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;box-shadow:0 20px 50px -34px rgba(20,28,45,.35)}
+.fbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+/* เจาะจงลูกตรงเท่านั้น — ไม่งั้นไปโดน checkbox ในแผง multi-select */
+.fbar > input{flex:1;min-width:160px;border:1px solid var(--line-strong);border-radius:9px;padding:8px 12px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--ink)}
+.fbar > input:focus{outline:none;border-color:var(--accent)}
+
+@media (max-width:640px){
+  .app{padding:10px 10px 40px}
+  .top{gap:7px;margin-bottom:10px}
+  /* แถว 1: โลโก้ + ปุ่ม, แถว 2: tab กางเต็มกว้าง */
+  .tabs{order:5;width:100%;justify-content:space-between}
+  .tabs button{padding:6px 8px;font-size:12px;flex:1;text-align:center;justify-content:center}
+  .fbar{gap:6px}
+  .fbar > input{flex:1 1 100%;font-size:16px} /* ≥16px กัน iOS ซูมตอนโฟกัส */
+}

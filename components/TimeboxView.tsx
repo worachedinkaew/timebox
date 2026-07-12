@@ -154,7 +154,9 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   }
 
   const ws = parseISO(weekStart);
-  const railTasks = db.tasks.filter((t) => t.status !== 'done');
+  // ตัดงานที่ status ติดธง done ออกจาก rail (ชุด status ผู้ใช้กำหนดเองได้)
+  const doneIds = new Set(db.statuses.filter((s) => s.done).map((s) => s.id));
+  const railTasks = db.tasks.filter((t) => !doneIds.has(t.status));
   const taskById = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
   const plannedHours = useMemo(() => {
     const m = new Map<string, number>();

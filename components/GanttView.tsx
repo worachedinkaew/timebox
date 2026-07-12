@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { STATUSES } from '../lib/types';
+import { optById } from '../lib/types';
 import type { DB, Task } from '../lib/types';
 import { THDOW, THMON, addDays, dayDiff, fmtShort, iso, mondayOf, parseISO, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
@@ -28,7 +28,7 @@ export default function GanttView({ db, onEdit }: { db: DB; onEdit: (t: Task) =>
   const tasks = db.tasks.filter((t) => t.start && t.end && t.start <= endIso && t.end >= start);
   const tdy = iso(todayDate());
   const toff = dayDiff(start, tdy);
-  const st = (id: string) => STATUSES.find((s) => s.id === id) ?? STATUSES[0];
+  const st = (id: string) => optById(db.statuses, id);
 
   const dayCells = Array.from({ length: DAYS }, (_, i) => {
     const d = addDays(s0, i);

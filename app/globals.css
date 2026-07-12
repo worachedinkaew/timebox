@@ -23,6 +23,31 @@ button{font-family:var(--f-body)}
 .fbar input{flex:1;min-width:160px;border:1px solid var(--line-strong);border-radius:9px;padding:8px 12px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--ink)}
 .fbar input:focus{outline:none;border-color:var(--accent)}
 .fbar select{border:1px solid var(--line-strong);border-radius:9px;padding:8px 10px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--ink)}
+
+/* multi-select filter */
+.msel{position:relative}
+.msbtn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:13px;font-family:var(--f-body)}
+.msbtn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.msbtn .car{font-size:10px;color:var(--ink-faint)}
+.mpanel{position:absolute;top:calc(100% + 5px);left:0;z-index:40;background:var(--surface);border:1px solid var(--line-strong);border-radius:11px;box-shadow:0 14px 40px -18px rgba(20,28,45,.4);padding:7px;min-width:170px}
+.mopt{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap}
+.mopt:hover{background:#f5f6f8}
+.mclear{width:100%;border:none;border-top:1px solid var(--line);background:transparent;color:var(--ink-faint);padding:7px 0 3px;margin-top:4px;cursor:pointer;font-size:12px}
+.mclear:hover{color:var(--coral)}
+
+/* แถวแก้ option ในหน้าตั้งค่า */
+.shead{font-family:var(--f-disp);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:8px}
+.orow{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.orow input[type=color]{width:30px;height:30px;padding:2px;border:1px solid var(--line-strong);border-radius:7px;background:var(--surface);cursor:pointer;flex:none}
+.orow .olabel{flex:1;min-width:0;border:1px solid var(--line-strong);border-radius:8px;padding:7px 10px;font-family:var(--f-body);font-size:13px}
+.orow .olabel:focus{outline:none;border-color:var(--accent)}
+.orow .odone{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+.orow .onav{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:24px;height:24px;font-size:9px;color:var(--ink-faint);cursor:pointer;flex:none}
+.orow .onav:disabled{opacity:.35;cursor:default}
+.orow .rm{border:none;background:transparent;color:var(--ink-faint);cursor:pointer;font-size:16px;flex:none}
+.orow .rm:hover{color:var(--coral)}
+.oadd{width:100%;border:1px dashed var(--line-strong);background:transparent;color:var(--ink-faint);border-radius:8px;padding:7px;cursor:pointer;font-size:12.5px;margin-top:2px}
+.oadd:hover{border-color:var(--accent);color:var(--accent)}
 .scroll{overflow:auto}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%}

@@ -3,11 +3,9 @@
 import { useRef } from 'react';
 import { DndContext, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
-import { PRIORITIES, STATUSES } from '../lib/types';
-import type { DB, Status, Task } from '../lib/types';
+import { optById } from '../lib/types';
+import type { DB, OptionDef, Status, Task } from '../lib/types';
 import { fmtShort } from '../lib/dates';
-
-const pr = (id: string) => PRIORITIES.find((x) => x.id === id) ?? PRIORITIES[0];
 
 export default function KanbanView({ db, onEdit, onAdd, onMove }: {
   db: DB;
@@ -34,11 +32,12 @@ export default function KanbanView({ db, onEdit, onAdd, onMove }: {
     <div className="scroll">
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="kb">
-          {STATUSES.map((s) => (
+          {db.statuses.map((s) => (
             <Column
               key={s.id}
               status={s}
               tasks={db.tasks.filter((t) => t.status === s.id)}
+              priorities={db.priorities}
               onAdd={onAdd}
               onCardClick={(t) => { if (!suppressClick.current) onEdit(t); }}
             />
@@ -49,9 +48,10 @@ export default function KanbanView({ db, onEdit, onAdd, onMove }: {
   );
 }
 
-function Column({ status, tasks, onAdd, onCardClick }: {
-  status: (typeof STATUSES)[number];
+function Column({ status, tasks, priorities, onAdd, onCardClick }: {
+  status: OptionDef;
   tasks: Task[];
+  priorities: OptionDef[];
   onAdd: (status: Status) => void;
   onCardClick: (t: Task) => void;
 }) {
@@ -64,16 +64,16 @@ function Column({ status, tasks, onAdd, onCardClick }: {
         <span className="ct">{tasks.length}</span>
       </div>
       <div className="kbody" ref={setNodeRef}>
-        {tasks.map((t) => <Card key={t.id} task={t} onClick={() => onCardClick(t)} />)}
+        {tasks.map((t) => <Card key={t.id} task={t} priorities={priorities} onClick={() => onCardClick(t)} />)}
       </div>
       <button className="kadd" onClick={() => onAdd(status.id)}>+ เพิ่มงาน</button>
     </div>
   );
 }
 
-function Card({ task, onClick }: { task: Task; onClick: () => void }) {
+function Card({ task, priorities, onClick }: { task: Task; priorities: OptionDef[]; onClick: () => void }) {
   const { setNodeRef, attributes, listeners, transform, isDragging } = useDraggable({ id: task.id });
-  const p = pr(task.priority);
+  const p = optById(priorities, task.priority);
   return (
     <div
       ref={setNodeRef}

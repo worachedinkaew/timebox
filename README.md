@@ -73,12 +73,15 @@ supabase/         schema + RLS
 3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว, "เวลาเผื่องานแทรก" (buffer),
    ช่วงชั่วโมงที่แสดงปรับได้ (เก็บใน localStorage) — `components/TimeboxView.tsx`
 4. ✅ **Calendar** — มุมมองเดือน / สัปดาห์ / วัน (`?cm=`) — `components/CalendarView.tsx`
-5. ✅ **Filter** — ค้นหาชื่อ/รายละเอียด + กรอง status/priority ใช้ร่วมกันทุก view (`?q= ?st= ?pr=`)
+5. ✅ **Filter** — ค้นหาชื่อ/รายละเอียด + กรอง status/priority แบบ multi-select ใช้ร่วมกันทุก view (`?q= ?st=a,b ?pr=x,y`)
+6. ✅ **Custom status/priority** — ปุ่ม "⚙ ตั้งค่า" เพิ่ม/ลบ/เปลี่ยนชื่อ/สี/ลำดับได้ (เช่นเพิ่ม Cancel)
+   สถานะติดธง "เสร็จ" ได้เพื่อไม่ให้ขึ้น rail ใน Timebox — เก็บใน `user_options` ต่อ user
 
 migration สำหรับ DB ที่สร้างก่อนหน้า (รันตามลำดับใน SQL Editor):
 
 - `supabase/02_buffer_blocks.sql` — ทำ `blocks.task_id` เป็น nullable (buffer)
 - `supabase/03_absolute_slots.sql` — เปลี่ยน slot เป็น index จากเที่ยงคืน (รันครั้งเดียว!)
+- `supabase/04_custom_options.sql` — status/priority เป็น text + ตาราง `user_options`
 
 และครบตามแผนเฟสแรกแล้ว:
 

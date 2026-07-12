@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import type { DB, Task, FieldDef } from './types';
+import { DEFAULT_PRIORITIES, DEFAULT_STATUSES } from './types';
+import type { DB, Task, FieldDef, OptionDef } from './types';
 
 // ---------------- AUTH ----------------
 export const authApi = {
@@ -43,18 +44,23 @@ function taskToRow(t: Task) {
 
 // ---------------- LOAD ----------------
 export async function loadAll(): Promise<DB> {
-  const [tasks, fields, blocks] = await Promise.all([
+  const [tasks, fields, blocks, options] = await Promise.all([
     supabase.from('tasks').select('*').order('sort'),
     supabase.from('field_defs').select('*').order('sort'),
     supabase.from('blocks').select('*'),
+    supabase.from('user_options').select('*').maybeSingle(),
   ]);
   if (tasks.error) throw tasks.error;
   if (fields.error) throw fields.error;
   if (blocks.error) throw blocks.error;
+  if (options.error) throw options.error;
+  const opt = options.data;
   return {
     tasks: (tasks.data || []).map(rowToTask),
     fields: (fields.data || []).map((f: any) => ({ id: f.id, label: f.label, type: f.type, options: f.options || [] })),
     blocks: (blocks.data || []).map((b: any) => ({ id: b.id, taskId: b.task_id, date: b.date, slot: b.slot })),
+    statuses: opt?.statuses?.length ? opt.statuses : DEFAULT_STATUSES,
+    priorities: opt?.priorities?.length ? opt.priorities : DEFAULT_PRIORITIES,
   };
 }
 
@@ -94,6 +100,27 @@ export const blockApi = {
     );
     const failed = results.find((r) => r.error);
     if (failed?.error) throw failed.error;
+  },
+};
+
+export const optionsApi = {
+  // เก็บทั้งชุดในแถวเดียวต่อ user (user_id เติมโดย trigger ตอน insert)
+  async save(statuses: OptionDef[], priorities: OptionDef[]) {
+    const { error } = await supabase.from('user_options')
+      .upsert({ statuses, priorities }, { onConflict: 'user_id' });
+    if (error) throw error;
+  },
+};
+
+export const taskBulkApi = {
+  // ตอนลบ option ที่ยังมีงานใช้อยู่ — ย้ายงานเหล่านั้นไปค่าใหม่
+  async reassignStatus(from: string, to: string) {
+    const { error } = await supabase.from('tasks').update({ status: to }).eq('status', from);
+    if (error) throw error;
+  },
+  async reassignPriority(from: string, to: string) {
+    const { error } = await supabase.from('tasks').update({ priority: to }).eq('priority', from);
+    if (error) throw error;
   },
 };
 

@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { authApi, loadAll, taskApi } from '../lib/db';
-import { STATUSES, PRIORITIES, TASK_COLORS } from '../lib/types';
+import { TASK_COLORS, optById } from '../lib/types';
 import type { Block, DB, Task, Status, Priority } from '../lib/types';
+import MultiSelect from '../components/MultiSelect';
 import { fmtShort } from '../lib/dates';
 import KanbanView from '../components/KanbanView';
 import GanttView from '../components/GanttView';
@@ -21,9 +22,6 @@ const VIEWS = [
 ] as const;
 type View = (typeof VIEWS)[number][0];
 
-const st = (id: string) => STATUSES.find((x) => x.id === id) ?? STATUSES[0];
-const pr = (id: string) => PRIORITIES.find((x) => x.id === id) ?? PRIORITIES[0];
-
 export default function Page() {
   const [userId, setUserId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -37,10 +35,10 @@ export default function Page() {
   const [editing, setEditing] = useState<{ task: Task | null; defaults?: Partial<Task> } | null>(null);
   const [showFields, setShowFields] = useState(false);
 
-  // filter ใช้ร่วมกันทุก view — เก็บใน URL ด้วย (?q= ?st= ?pr=)
+  // filter ใช้ร่วมกันทุก view — เก็บใน URL ด้วย (?q= ?st=a,b ?pr=x,y)
   const [q, setQ] = useState(() => getParam('q') ?? '');
-  const [fStatus, setFStatus] = useState(() => getParam('st') ?? '');
-  const [fPriority, setFPriority] = useState(() => getParam('pr') ?? '');
+  const [fStatus, setFStatus] = useState<string[]>(() => (getParam('st') ?? '').split(',').filter(Boolean));
+  const [fPriority, setFPriority] = useState<string[]>(() => (getParam('pr') ?? '').split(',').filter(Boolean));
 
   const switchView = (v: View) => {
     setView(v);
@@ -50,13 +48,13 @@ export default function Page() {
   const fdb = useMemo(() => {
     if (!db) return null;
     const qq = q.trim().toLowerCase();
-    if (!qq && !fStatus && !fPriority) return db;
+    if (!qq && !fStatus.length && !fPriority.length) return db;
     return {
       ...db,
       tasks: db.tasks.filter((t) =>
         (!qq || t.title.toLowerCase().includes(qq) || t.desc.toLowerCase().includes(qq)) &&
-        (!fStatus || t.status === fStatus) &&
-        (!fPriority || t.priority === fPriority)
+        (!fStatus.length || fStatus.includes(t.status)) &&
+        (!fPriority.length || fPriority.includes(t.priority))
       ),
     };
   }, [db, q, fStatus, fPriority]);
@@ -101,7 +99,7 @@ export default function Page() {
           ))}
         </div>
         <div className="sp" />
-        <button className="btn" onClick={() => setShowFields(true)}>⚙ ฟิลด์</button>
+        <button className="btn" onClick={() => setShowFields(true)}>⚙ ตั้งค่า</button>
         <button className="btn" onClick={() => authApi.signOut()}>ออกจากระบบ</button>
         <button className="btn pri" onClick={() => setEditing({ task: null })}>+ งานใหม่</button>
       </div>
@@ -113,19 +111,23 @@ export default function Page() {
           value={q}
           onChange={(e) => { setQ(e.target.value); setParam('q', e.target.value || null); }}
         />
-        <select value={fStatus} onChange={(e) => { setFStatus(e.target.value); setParam('st', e.target.value || null); }}>
-          <option value="">ทุกสถานะ</option>
-          {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-        </select>
-        <select value={fPriority} onChange={(e) => { setFPriority(e.target.value); setParam('pr', e.target.value || null); }}>
-          <option value="">ทุก priority</option>
-          {PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-        </select>
-        {(q || fStatus || fPriority) && (
+        <MultiSelect
+          placeholder="สถานะ"
+          options={db?.statuses ?? []}
+          value={fStatus}
+          onChange={(v) => { setFStatus(v); setParam('st', v.length ? v.join(',') : null); }}
+        />
+        <MultiSelect
+          placeholder="Priority"
+          options={db?.priorities ?? []}
+          value={fPriority}
+          onChange={(v) => { setFPriority(v); setParam('pr', v.length ? v.join(',') : null); }}
+        />
+        {(q || fStatus.length > 0 || fPriority.length > 0) && (
           <button
             className="btn"
             onClick={() => {
-              setQ(''); setFStatus(''); setFPriority('');
+              setQ(''); setFStatus([]); setFPriority([]);
               setParam('q', null); setParam('st', null); setParam('pr', null);
             }}
           >
@@ -174,7 +176,7 @@ export default function Page() {
 
 // ---------------- LIST ----------------
 function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
-  const order = STATUSES.map((s) => s.id);
+  const order = db.statuses.map((s) => s.id);
   const rows = [...db.tasks].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
   const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
   return (
@@ -188,7 +190,7 @@ function ListView({ db, onEdit }: { db: DB; onEdit: (t: Task) => void }) {
         </thead>
         <tbody>
           {rows.map((t) => {
-            const s = st(t.status), p = pr(t.priority);
+            const s = optById(db.statuses, t.status), p = optById(db.priorities, t.priority);
             return (
               <tr key={t.id} onClick={() => onEdit(t)}>
                 <td><div className="ttl"><span className="pbar" style={{ background: color(t) }} />{t.title}</div></td>
@@ -220,7 +222,12 @@ function renderCustom(t: Task, f: DB['fields'][number]) {
 function TaskModal({ task, defaults, db, onClose, onSaved }: { task: Task | null; defaults?: Partial<Task>; db: DB; onClose: () => void; onSaved: () => void }) {
   const today = new Date().toISOString().slice(0, 10);
   const [f, setF] = useState<Task>(
-    task ?? { id: crypto.randomUUID(), title: '', desc: '', start: today, end: today, status: 'todo', priority: 'med', manday: 1, cIdx: db.tasks.length, custom: {}, ...defaults }
+    task ?? {
+      id: crypto.randomUUID(), title: '', desc: '', start: today, end: today,
+      status: db.statuses[0]?.id ?? 'todo',
+      priority: db.priorities[Math.min(1, db.priorities.length - 1)]?.id ?? 'med',
+      manday: 1, cIdx: db.tasks.length, custom: {}, ...defaults,
+    }
   );
   const set = (patch: Partial<Task>) => setF((prev) => ({ ...prev, ...patch }));
   const setCustom = (id: string, v: unknown) => setF((prev) => ({ ...prev, custom: { ...prev.custom, [id]: v } }));
@@ -245,12 +252,12 @@ function TaskModal({ task, defaults, db, onClose, onSaved }: { task: Task | null
           <div className="row2">
             <div className="fld"><label>Status</label>
               <select value={f.status} onChange={(e) => set({ status: e.target.value as Status })}>
-                {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                {db.statuses.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
             <div className="fld"><label>Priority</label>
               <select value={f.priority} onChange={(e) => set({ priority: e.target.value as Priority })}>
-                {PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+                {db.priorities.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
           </div>

@@ -4,10 +4,9 @@
 -- รันไฟล์นี้ใน Supabase → SQL Editor → New query → Run
 -- =====================================================================
 
--- ---- ENUMS (สถานะ / priority ให้ค่าคงที่ ป้องกันพิมพ์มั่ว) ----
-create type task_status   as enum ('todo','doing','review','done');
-create type task_priority as enum ('low','med','high','urgent');
-create type field_type    as enum ('text','number','select','date','checkbox');
+-- ---- ENUMS ----
+-- status/priority เป็น text เพราะผู้ใช้ปรับชุดตัวเลือกเองได้ (เก็บใน user_options)
+create type field_type as enum ('text','number','select','date','checkbox');
 
 -- =====================================================================
 -- TABLES
@@ -33,8 +32,8 @@ create table tasks (
   description text not null default '',
   start_date  date,
   end_date    date,
-  status      task_status   not null default 'todo',
-  priority    task_priority not null default 'med',
+  status      text not null default 'todo',
+  priority    text not null default 'med',
   manday      numeric(5,3)  not null default 1,      -- 1 manday = 8 ชม.
   color_idx   int  not null default 0,
   custom      jsonb not null default '{}'::jsonb,     -- ค่า custom field: { "<field_id>": value }
@@ -54,6 +53,14 @@ create table blocks (
   slot     int  not null,     -- index ช่อง 30 นาที จากเที่ยงคืน (16 = 08:00, 17 = 08:30)
   created_at timestamptz not null default now(),
   unique (user_id, date, slot)   -- 1 ช่องมีได้งานเดียว
+);
+
+-- ชุดตัวเลือก status/priority ของแต่ละ user (ว่าง = ใช้ default ของแอป)
+create table user_options (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  statuses   jsonb not null default '[]'::jsonb,   -- [{id,label,color,done?}]
+  priorities jsonb not null default '[]'::jsonb,   -- [{id,label,color}]
+  updated_at timestamptz not null default now()
 );
 
 -- indexes ที่ query บ่อย
@@ -77,9 +84,16 @@ create trigger tasks_touch before update on tasks
 -- นี่คือสิ่งที่ทำให้ "หลายคนใช้ แต่เห็นแค่ของตัวเอง" ปลอดภัยระดับ DB
 -- =====================================================================
 
-alter table field_defs enable row level security;
-alter table tasks      enable row level security;
-alter table blocks     enable row level security;
+alter table field_defs   enable row level security;
+alter table tasks        enable row level security;
+alter table blocks       enable row level security;
+alter table user_options enable row level security;
+
+-- user_options
+create policy "own options (select)" on user_options for select using (auth.uid() = user_id);
+create policy "own options (insert)" on user_options for insert with check (auth.uid() = user_id);
+create policy "own options (update)" on user_options for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own options (delete)" on user_options for delete using (auth.uid() = user_id);
 
 -- field_defs
 create policy "own field_defs (select)" on field_defs for select using (auth.uid() = user_id);
@@ -110,6 +124,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
-create trigger tasks_set_user      before insert on tasks      for each row execute function set_user_id();
-create trigger blocks_set_user     before insert on blocks     for each row execute function set_user_id();
-create trigger field_defs_set_user before insert on field_defs for each row execute function set_user_id();
+create trigger tasks_set_user        before insert on tasks        for each row execute function set_user_id();
+create trigger blocks_set_user       before insert on blocks       for each row execute function set_user_id();
+create trigger field_defs_set_user   before insert on field_defs   for each row execute function set_user_id();
+create trigger user_options_set_user before insert on user_options for each row execute function set_user_id();

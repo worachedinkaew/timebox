@@ -1,0 +1,17 @@
+/* แถวแก้ option ในหน้าตั้งค่า */
+.shead{font-family:var(--f-disp);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:8px}
+.orow{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.orow input[type=color]{width:30px;height:30px;padding:2px;border:1px solid var(--line-strong);border-radius:7px;background:var(--surface);cursor:pointer;flex:none}
+.orow .olabel{flex:1;min-width:0;border:1px solid var(--line-strong);border-radius:8px;padding:7px 10px;font-family:var(--f-body);font-size:13px}
+.orow .olabel:focus{outline:none;border-color:var(--accent)}
+.orow .odone{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+.orow .onav{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:24px;height:24px;font-size:9px;color:var(--ink-faint);cursor:pointer;flex:none}
+.orow .onav:disabled{opacity:.35;cursor:default}
+.orow .rm{border:none;background:transparent;color:var(--ink-faint);cursor:pointer;font-size:16px;flex:none}
+.orow .rm:hover{color:var(--coral)}
+.oadd{width:100%;border:1px dashed var(--line-strong);background:transparent;color:var(--ink-faint);border-radius:8px;padding:7px;cursor:pointer;font-size:12.5px;margin-top:2px}
+.oadd:hover{border-color:var(--accent);color:var(--accent)}
+.fitem{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:7px}
+.fitem .ft{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-faint);background:#f4f6f8;padding:1px 7px;border-radius:5px}
+.fitem .rm{margin-left:auto;border:none;background:transparent;color:var(--ink-faint);cursor:pointer;font-size:16px}
+.fitem .rm:hover{color:var(--coral)}

@@ -1,0 +1,23 @@
+/* โครง modal ที่ใช้ร่วมกันระหว่าง TaskModal และ FieldManager */
+.ov{position:fixed;inset:0;background:rgba(20,28,45,.42);display:flex;align-items:flex-start;justify-content:center;padding:34px 16px;z-index:50;overflow:auto}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:520px;box-shadow:0 30px 80px -20px rgba(20,28,45,.5)}
+.mhd{display:flex;align-items:center;padding:15px 18px;border-bottom:1px solid var(--line)}
+.mhd h3{font-family:var(--f-disp);font-size:15px;margin:0}
+.mhd .x{margin-left:auto;border:none;background:transparent;font-size:20px;color:var(--ink-faint);cursor:pointer}
+.mbd{padding:16px 18px}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px}
+.fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;font-family:var(--f-body);font-size:13.5px;color:var(--ink);background:var(--surface)}
+.fld textarea{resize:vertical;min-height:64px}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mft{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
+.mft .del{margin-right:auto;color:var(--coral);border-color:#f0d4d0}
+
+@media (max-width:640px){
+  .ov{padding:10px 8px}
+  .mhd{padding:13px 14px}
+  .mbd{padding:14px}
+  .mft{padding:12px 14px}
+  .fld input,.fld textarea,.fld select{font-size:16px}
+}

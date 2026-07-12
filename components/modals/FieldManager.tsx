@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { fieldApi, optionsApi, taskBulkApi } from '@/lib/db';
 import { GREY } from '@/lib/types';
 import type { DB, FieldType, OptionDef } from '@/lib/types';
+import modal from './Modal.module.css';
+import styles from './FieldManager.module.css';
 
 const FIELD_TYPES: { id: FieldType; label: string }[] = [
   { id: 'text', label: 'Text' },
@@ -31,17 +33,17 @@ function OptionRows({ list, onList, withDone }: {
   return (
     <>
       {list.map((o, i) => (
-        <div className="orow" key={o.id}>
+        <div className={styles.orow} key={o.id}>
           <input type="color" value={o.color} onChange={(e) => onList(list.map((x, k) => (k === i ? { ...x, color: e.target.value } : x)))} />
-          <input className="olabel" value={o.label} placeholder="ชื่อตัวเลือก" onChange={(e) => onList(list.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} />
+          <input className={styles.olabel} value={o.label} placeholder="ชื่อตัวเลือก" onChange={(e) => onList(list.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} />
           {withDone && (
-            <label className="odone" title='นับเป็น "จบงานแล้ว" — ไม่ขึ้นรายการใน Timebox'>
+            <label className={styles.odone} title='นับเป็น "จบงานแล้ว" — ไม่ขึ้นรายการใน Timebox'>
               <input type="checkbox" checked={!!o.done} onChange={(e) => onList(list.map((x, k) => (k === i ? { ...x, done: e.target.checked } : x)))} /> เสร็จ
             </label>
           )}
-          <button className="onav" onClick={() => move(i, -1)} disabled={i === 0}>▲</button>
-          <button className="onav" onClick={() => move(i, 1)} disabled={i === list.length - 1}>▼</button>
-          <button className="rm" onClick={() => onList(list.filter((_, k) => k !== i))}>×</button>
+          <button className={styles.onav} onClick={() => move(i, -1)} disabled={i === 0}>▲</button>
+          <button className={styles.onav} onClick={() => move(i, 1)} disabled={i === list.length - 1}>▼</button>
+          <button className={styles.rm} onClick={() => onList(list.filter((_, k) => k !== i))}>×</button>
         </div>
       ))}
     </>
@@ -109,18 +111,18 @@ export default function FieldManager({ db, onClose, onChanged }: {
   }
 
   return (
-    <div className="ov" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="mhd"><h3>ตั้งค่า</h3><button className="x" onClick={onClose}>×</button></div>
-        <div className="mbd">
+    <div className={modal.ov} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={modal.modal}>
+        <div className={modal.mhd}><h3>ตั้งค่า</h3><button className={modal.x} onClick={onClose}>×</button></div>
+        <div className={modal.mbd}>
 
-          <div className="shead">สถานะ (คอลัมน์ Kanban)</div>
+          <div className={styles.shead}>สถานะ (คอลัมน์ Kanban)</div>
           <OptionRows list={statuses} onList={(l) => { setStatuses(l); setOptDirty(true); }} withDone />
-          <button className="oadd" onClick={() => { setStatuses([...statuses, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่มสถานะ (เช่น Cancel)</button>
+          <button className={styles.oadd} onClick={() => { setStatuses([...statuses, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่มสถานะ (เช่น Cancel)</button>
 
-          <div className="shead" style={{ marginTop: 16 }}>Priority</div>
+          <div className={styles.shead} style={{ marginTop: 16 }}>Priority</div>
           <OptionRows list={priorities} onList={(l) => { setPriorities(l); setOptDirty(true); }} />
-          <button className="oadd" onClick={() => { setPriorities([...priorities, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่ม priority</button>
+          <button className={styles.oadd} onClick={() => { setPriorities([...priorities, { id: newId(), label: '', color: GREY }]); setOptDirty(true); }}>+ เพิ่ม priority</button>
 
           {optDirty && (
             <button className="btn pri" style={{ width: '100%', marginTop: 12 }} onClick={saveOptions} disabled={busy}>
@@ -128,22 +130,22 @@ export default function FieldManager({ db, onClose, onChanged }: {
             </button>
           )}
 
-          <div className="shead" style={{ marginTop: 18 }}>Custom fields</div>
+          <div className={styles.shead} style={{ marginTop: 18 }}>Custom fields</div>
           {db.fields.map((f) => (
-            <div className="fitem" key={f.id}>
+            <div className={styles.fitem} key={f.id}>
               <b>{f.label}</b>
-              <span className="ft">{f.type}</span>
-              <button className="rm" onClick={() => removeField(f.id)}>×</button>
+              <span className={styles.ft}>{f.type}</span>
+              <button className={styles.rm} onClick={() => removeField(f.id)}>×</button>
             </div>
           ))}
           {!db.fields.length && <div className="muted" style={{ fontSize: 12.5, marginBottom: 10 }}>ยังไม่มี custom field</div>}
 
-          <div className="row2">
-            <div className="fld">
+          <div className={modal.row2}>
+            <div className={modal.fld}>
               <label>ชื่อฟิลด์</label>
               <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="เช่น Sprint, Repo" />
             </div>
-            <div className="fld">
+            <div className={modal.fld}>
               <label>ชนิด</label>
               <select value={type} onChange={(e) => setType(e.target.value as FieldType)}>
                 {FIELD_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
@@ -151,7 +153,7 @@ export default function FieldManager({ db, onClose, onChanged }: {
             </div>
           </div>
           {type === 'select' && (
-            <div className="fld">
+            <div className={modal.fld}>
               <label>ตัวเลือก (คั่นด้วย ,)</label>
               <input value={opts} onChange={(e) => setOpts(e.target.value)} placeholder="Frontend, Backend, QA" />
             </div>
@@ -159,7 +161,7 @@ export default function FieldManager({ db, onClose, onChanged }: {
           <button className="btn" style={{ width: '100%' }} onClick={addField} disabled={busy}>+ เพิ่มฟิลด์</button>
 
         </div>
-        <div className="mft">
+        <div className={modal.mft}>
           <div className="sp" />
           <button className="btn pri" onClick={onClose}>เสร็จ</button>
         </div>

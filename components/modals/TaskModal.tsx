@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { taskApi } from '@/lib/db';
 import type { DB, Priority, Status, Task } from '@/lib/types';
+import modal from './Modal.module.css';
 
 export default function TaskModal({ task, defaults, db, onClose, onSaved }: { task: Task | null; defaults?: Partial<Task>; db: DB; onClose: () => void; onSaved: () => void }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -28,34 +29,34 @@ export default function TaskModal({ task, defaults, db, onClose, onSaved }: { ta
   }
 
   return (
-    <div className="ov" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="mhd"><h3>{task ? 'แก้ไขงาน' : 'งานใหม่'}</h3><button className="x" onClick={onClose}>×</button></div>
-        <div className="mbd">
-          <div className="fld"><label>งาน</label><input value={f.title} onChange={(e) => set({ title: e.target.value })} placeholder="ชื่องาน" /></div>
-          <div className="fld"><label>Description</label><textarea value={f.desc} onChange={(e) => set({ desc: e.target.value })} /></div>
-          <div className="row2">
-            <div className="fld"><label>Status</label>
+    <div className={modal.ov} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={modal.modal}>
+        <div className={modal.mhd}><h3>{task ? 'แก้ไขงาน' : 'งานใหม่'}</h3><button className={modal.x} onClick={onClose}>×</button></div>
+        <div className={modal.mbd}>
+          <div className={modal.fld}><label>งาน</label><input value={f.title} onChange={(e) => set({ title: e.target.value })} placeholder="ชื่องาน" /></div>
+          <div className={modal.fld}><label>Description</label><textarea value={f.desc} onChange={(e) => set({ desc: e.target.value })} /></div>
+          <div className={modal.row2}>
+            <div className={modal.fld}><label>Status</label>
               <select value={f.status} onChange={(e) => set({ status: e.target.value as Status })}>
                 {db.statuses.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
-            <div className="fld"><label>Priority</label>
+            <div className={modal.fld}><label>Priority</label>
               <select value={f.priority} onChange={(e) => set({ priority: e.target.value as Priority })}>
                 {db.priorities.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
           </div>
-          <div className="row2">
-            <div className="fld"><label>Start date</label><input type="date" value={f.start ?? ''} onChange={(e) => set({ start: e.target.value })} /></div>
-            <div className="fld"><label>End date</label><input type="date" value={f.end ?? ''} onChange={(e) => set({ end: e.target.value })} /></div>
+          <div className={modal.row2}>
+            <div className={modal.fld}><label>Start date</label><input type="date" value={f.start ?? ''} onChange={(e) => set({ start: e.target.value })} /></div>
+            <div className={modal.fld}><label>End date</label><input type="date" value={f.end ?? ''} onChange={(e) => set({ end: e.target.value })} /></div>
           </div>
-          <div className="fld"><label>Manday (1 = 8 ชม.)</label><input type="number" min={0} step={0.125} value={f.manday} onChange={(e) => set({ manday: parseFloat(e.target.value) || 0 })} /></div>
+          <div className={modal.fld}><label>Manday (1 = 8 ชม.)</label><input type="number" min={0} step={0.125} value={f.manday} onChange={(e) => set({ manday: parseFloat(e.target.value) || 0 })} /></div>
           {db.fields.length > 0 && (
             <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>
               <div className="muted" style={{ fontSize: 11, fontWeight: 600, marginBottom: 9 }}>CUSTOM FIELDS</div>
               {db.fields.map((fd) => (
-                <div className="fld" key={fd.id}>
+                <div className={modal.fld} key={fd.id}>
                   <label>{fd.label}</label>
                   {fd.type === 'select' ? (
                     <select value={String(f.custom?.[fd.id] ?? '')} onChange={(e) => setCustom(fd.id, e.target.value)}>
@@ -72,8 +73,8 @@ export default function TaskModal({ task, defaults, db, onClose, onSaved }: { ta
             </div>
           )}
         </div>
-        <div className="mft">
-          {task && <button className="btn del" onClick={remove}>ลบงาน</button>}
+        <div className={modal.mft}>
+          {task && <button className={`btn ${modal.del}`} onClick={remove}>ลบงาน</button>}
           <div className="sp" />
           <button className="btn" onClick={onClose}>ยกเลิก</button>
           <button className="btn pri" onClick={save}>บันทึก</button>

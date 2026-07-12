@@ -12,8 +12,12 @@ const N_SLOTS = (TB_END - TB_START) * 2; // 1 ช่อง = 30 นาที
 const cellKey = (date: string, slot: number) => `${date}|${slot}`;
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
 
-// taskId = null หมายถึงลบบล็อกในช่องนั้น
-type Op = { taskId: string | null; date: string; slot: number };
+// ค่า sel ตอนเลือกแถว buffer — ใน DB บล็อก buffer คือแถวที่ taskId เป็น null
+const BUFID = '__buffer__';
+
+type Op =
+  | { kind: 'set'; taskId: string | null; date: string; slot: number }
+  | { kind: 'del'; date: string; slot: number };
 
 export default function TimeboxView({ db, updateBlocks, onError }: {
   db: DB;
@@ -58,8 +62,8 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
       const ops = [...p.ops.values()];
       p.ops.clear();
       if (!ops.length) return;
-      const paints = ops.filter((o): o is Op & { taskId: string } => o.taskId != null);
-      const erases = ops.filter((o) => o.taskId == null);
+      const paints = ops.filter((o) => o.kind === 'set') as Extract<Op, { kind: 'set' }>[];
+      const erases = ops.filter((o) => o.kind === 'del');
       try {
         if (paints.length) await blockApi.setMany(paints);
         if (erases.length) await blockApi.removeMany(erases);
@@ -78,6 +82,10 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
     return el?.dataset.date && el.dataset.slot != null ? el : null;
   }
 
+  // block ในช่องนี้ตรงกับสิ่งที่เลือกอยู่ไหม (งานปกติ หรือแถว buffer)
+  const selMatches = (b: Block | undefined) =>
+    !!b && (sel === BUFID ? b.taskId === null : b.taskId === sel);
+
   function applyCell(el: HTMLElement | null) {
     if (!el) return;
     const p = paintRef.current;
@@ -86,17 +94,17 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
     const ex = mapRef.current.get(k);
     let op: Op | null = null;
     if (erase) {
-      if (ex) op = { taskId: null, date, slot };
+      if (ex) op = { kind: 'del', date, slot };
     } else if (sel) {
       if (p.mode === 'erase') {
-        if (ex && ex.taskId === sel) op = { taskId: null, date, slot };
-      } else if (!ex || ex.taskId !== sel) {
-        op = { taskId: sel, date, slot };
+        if (selMatches(ex)) op = { kind: 'del', date, slot };
+      } else if (!selMatches(ex)) {
+        op = { kind: 'set', taskId: sel === BUFID ? null : sel, date, slot };
       }
     }
     if (!op) return;
     p.ops.set(k, op);
-    if (op.taskId == null) {
+    if (op.kind === 'del') {
       mapRef.current.delete(k);
       updateBlocks((bs) => bs.filter((b) => !(b.date === date && b.slot === slot)));
     } else {
@@ -118,7 +126,7 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
     p.painting = true;
     p.ops.clear();
     const ex = mapRef.current.get(cellKey(el.dataset.date!, +el.dataset.slot!));
-    p.mode = !erase && ex && ex.taskId === sel ? 'erase' : 'paint';
+    p.mode = !erase && selMatches(ex) ? 'erase' : 'paint';
     applyCell(el);
     e.preventDefault();
   }
@@ -134,7 +142,10 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
   const taskById = useMemo(() => new Map(db.tasks.map((t) => [t.id, t])), [db.tasks]);
   const plannedHours = useMemo(() => {
     const m = new Map<string, number>();
-    db.blocks.forEach((b) => m.set(b.taskId, (m.get(b.taskId) || 0) + 0.5));
+    db.blocks.forEach((b) => {
+      const k = b.taskId ?? BUFID;
+      m.set(k, (m.get(k) || 0) + 0.5);
+    });
     return m;
   }, [db.blocks]);
 
@@ -169,6 +180,19 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
             </div>
           );
         })}
+        <div
+          className={'trow buf' + (sel === BUFID ? ' sel' : '')}
+          onClick={() => { setErase(false); setSel(sel === BUFID ? null : BUFID); }}
+        >
+          <div className="r1">
+            <span className="sw" style={{ background: 'repeating-linear-gradient(45deg,#e9a23b 0 4px,#f2c777 4px 8px)' }} />
+            <span className="nm">เวลาเผื่องานแทรก</span>
+          </div>
+          <div className="r2">
+            กันไว้ให้งานด่วน
+            <span className="rem">{plannedHours.get(BUFID) || 0} ชม.</span>
+          </div>
+        </div>
         <div className="tbtool">
           <button className={erase ? 'on' : ''} onClick={() => { setErase(!erase); if (!erase) setSel(null); }}>
             🧽 ยางลบ
@@ -201,13 +225,14 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
                   {Array.from({ length: 7 }, (_, dz) => {
                     const date = iso(addDays(ws, dz));
                     const blk = blockMap.get(cellKey(date, s));
-                    const t = blk ? taskById.get(blk.taskId) : undefined;
+                    const isBuf = !!blk && blk.taskId === null;
+                    const t = blk?.taskId ? taskById.get(blk.taskId) : undefined;
                     const above = blk ? blockMap.get(cellKey(date, s - 1)) : undefined;
                     const showLabel = t && (!above || above.taskId !== blk!.taskId);
                     return (
                       <div
                         key={dz}
-                        className={'tcell' + (hr ? ' hr' : '')}
+                        className={'tcell' + (hr ? ' hr' : '') + (isBuf ? ' bf' : '')}
                         data-date={date}
                         data-slot={s}
                         style={t ? { background: color(t) } : undefined}

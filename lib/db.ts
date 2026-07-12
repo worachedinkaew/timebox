@@ -82,7 +82,8 @@ export const blockApi = {
     if (error) throw error;
   },
   // batch สำหรับการลากระบายทีละหลายช่อง — บันทึกครั้งเดียวตอนปล่อยนิ้ว
-  async setMany(blocks: { taskId: string; date: string; slot: number }[]) {
+  // taskId = null คือ buffer ("เวลาเผื่องานแทรก")
+  async setMany(blocks: { taskId: string | null; date: string; slot: number }[]) {
     const { error } = await supabase.from('blocks')
       .upsert(blocks.map((b) => ({ task_id: b.taskId, date: b.date, slot: b.slot })), { onConflict: 'user_id,date,slot' });
     if (error) throw error;

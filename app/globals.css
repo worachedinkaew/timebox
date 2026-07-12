@@ -94,6 +94,7 @@ table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
 .trow .rem.warn{color:var(--coral);font-weight:600}
 .gz{height:5px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
 .gz>span{display:block;height:100%}
+.trow.buf{background:repeating-linear-gradient(45deg,#fdf6e9 0 7px,#faf0da 7px 14px)}
 .tbtool{display:flex;gap:6px;margin-top:10px}
 .tbtool button{flex:1;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:6px;font-size:12px;color:var(--ink-soft);cursor:pointer}
 .tbtool button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
@@ -110,6 +111,7 @@ table.lst tr{cursor:pointer}table.lst tbody tr:hover{background:#fbfcfd}
 .tcell.hr{border-top:1px solid var(--line-strong)}
 .tcell:last-child{border-right:1px solid var(--line)}
 .tcell .lb{position:absolute;inset:0;padding:1px 4px;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;pointer-events:none;text-shadow:0 1px 1px rgba(0,0,0,.18)}
+.tcell.bf{background-image:repeating-linear-gradient(45deg,#B9C0CC 0 6px,#CDD3DC 6px 12px)}
 @media(max-width:640px){.tbwrap{grid-template-columns:1fr}.tbrail{border-right:none;border-bottom:1px solid var(--line)}}
 
 /* ---------- CALENDAR ---------- */

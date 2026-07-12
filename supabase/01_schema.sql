@@ -45,10 +45,11 @@ create table tasks (
 );
 
 -- บล็อกเวลาใน timebox (1 แถว = 1 ช่อง 30 นาที)
+-- task_id เป็น NULL = "เวลาเผื่องานแทรก" (buffer) ไม่ผูกกับ task ไหน
 create table blocks (
   id       uuid primary key default gen_random_uuid(),
   user_id  uuid not null references auth.users(id) on delete cascade,
-  task_id  uuid not null references tasks(id) on delete cascade,
+  task_id  uuid references tasks(id) on delete cascade,
   date     date not null,
   slot     int  not null,     -- index ช่อง 30 นาที (0 = เวลาเริ่มของวัน)
   created_at timestamptz not null default now(),

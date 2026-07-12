@@ -24,7 +24,7 @@ export interface FieldDef {
 
 export interface Block {
   id: string;
-  taskId: string;
+  taskId: string | null;   // null = เวลาเผื่องานแทรก (buffer)
   date: string;   // YYYY-MM-DD
   slot: number;
 }

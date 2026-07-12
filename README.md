@@ -70,8 +70,8 @@ supabase/         schema + RLS
 
 1. ✅ **Kanban** — คอลัมน์ตาม status + drag (@dnd-kit รองรับ touch) — `components/KanbanView.tsx`
 2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ — `components/GanttView.tsx`
-3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว — `components/TimeboxView.tsx`
-   (ยังไม่มี "เวลาเผื่องานแทรก" จาก prototype — ต้องแก้ schema ให้ block ไม่ผูก task ก่อน)
+3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว + "เวลาเผื่องานแทรก" (buffer) — `components/TimeboxView.tsx`
+   (DB เก่าที่รัน `01_schema.sql` ก่อน buffer มา ต้องรัน `supabase/02_buffer_blocks.sql` เพิ่ม)
 4. ✅ **Calendar** — เดือน grid ตามช่วงวันที่ — `components/CalendarView.tsx`
 
 และครบตามแผนเฟสแรกแล้ว:

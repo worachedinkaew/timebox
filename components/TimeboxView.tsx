@@ -6,10 +6,9 @@ import { TASK_COLORS } from '../lib/types';
 import type { Block, DB, Task } from '../lib/types';
 import { THDOW, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
+import { loadHours, saveHours } from '../lib/hours';
 
 // slot = index ช่อง 30 นาทีจากเที่ยงคืน (16 = 08:00) — ช่วงที่แสดงเลือกได้ เก็บใน localStorage
-const HOURS_KEY = 'timebox:hours';
-const DEFAULT_HOURS = { start: 8, end: 18 };
 const cellKey = (date: string, slot: number) => `${date}|${slot}`;
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
 
@@ -26,19 +25,10 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   updateBlocks: (up: (blocks: Block[]) => Block[]) => void;
   onError: () => void;
 }) {
-  const [hours, setHoursRaw] = useState(() => {
-    try {
-      const s = localStorage.getItem(HOURS_KEY);
-      if (s) {
-        const p = JSON.parse(s);
-        if (Number.isInteger(p.start) && Number.isInteger(p.end) && p.start >= 0 && p.end <= 24 && p.end > p.start) return p as { start: number; end: number };
-      }
-    } catch { /* ค่าเสียก็ใช้ default */ }
-    return DEFAULT_HOURS;
-  });
+  const [hours, setHoursRaw] = useState(loadHours);
   const setHours = (h: { start: number; end: number }) => {
     setHoursRaw(h);
-    try { localStorage.setItem(HOURS_KEY, JSON.stringify(h)); } catch { /* private mode */ }
+    saveHours(h);
   };
   // component นี้ mount ฝั่ง client เท่านั้น (หลัง auth gate) อ่าน URL ใน initializer ได้เลย
   const [weekStart, setWeekStartRaw] = useState(() => {

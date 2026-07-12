@@ -5,6 +5,7 @@ import { TASK_COLORS } from '../lib/types';
 import type { DB, Task } from '../lib/types';
 import { THDOW, THMON, addDays, iso, mondayOf, pad, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
+import { loadHours } from '../lib/hours';
 
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
 
@@ -141,8 +142,10 @@ export default function CalendarView({ db, onEdit }: { db: DB; onEdit: (t: Task)
             i = j + 1;
           }
         });
-        const hourStart = segs.length ? Math.min(8, Math.floor(Math.min(...segs.map((s) => s.s0)) / 2)) : 8;
-        const hourEnd = segs.length ? Math.max(18, Math.ceil((Math.max(...segs.map((s) => s.s1)) + 1) / 2)) : 18;
+        // กรอบชั่วโมงเดียวกับที่ตั้งไว้ในแท็บ Timebox — ขยายอัตโนมัติถ้ามีบล็อกนอกช่วง
+        const base = loadHours();
+        const hourStart = segs.length ? Math.min(base.start, Math.floor(Math.min(...segs.map((s) => s.s0)) / 2)) : base.start;
+        const hourEnd = segs.length ? Math.max(base.end, Math.ceil((Math.max(...segs.map((s) => s.s1)) + 1) / 2)) : base.end;
         const HH = 44; // px ต่อ 1 ชั่วโมง
         const taskById = new Map(db.tasks.map((t) => [t.id, t]));
         return (

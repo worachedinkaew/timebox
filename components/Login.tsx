@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { authApi } from '@/lib/db';
+import styles from './Login.module.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   return (
-    <div className="login">
+    <div className={styles.login}>
       <div className="brand"><span className="mk" />Timebox</div>
       <p>เข้าสู่ระบบเพื่อจัดการ task ของคุณ</p>
       <button className="btn pri" onClick={() => authApi.signInWithGoogle()}>ล็อกอินด้วย Google</button>

@@ -1,0 +1,10 @@
+.login{max-width:380px;margin:14vh auto;background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;padding:28px;text-align:center;box-shadow:0 24px 60px -30px rgba(20,28,45,.35)}
+.login :global(.brand){justify-content:center;margin-bottom:6px}
+.login p{color:var(--ink-soft);font-size:13px;margin:0 0 20px}
+.login :global(.btn){width:100%;margin-bottom:10px;padding:11px}
+.login input{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:11px;margin-bottom:10px;font-size:13.5px}
+
+@media (max-width:640px){
+  .login{margin:8vh auto;padding:22px}
+  .login input{font-size:16px}
+}

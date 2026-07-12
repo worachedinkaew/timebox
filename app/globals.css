@@ -225,8 +225,6 @@ table.lst th .ar{color:var(--accent);margin-left:3px;font-size:9px}
   .mbd{padding:14px}
   .mft{padding:12px 14px}
   .fld input,.fld textarea,.fld select{font-size:16px}
-  .login{margin:8vh auto;padding:22px}
-  .login input{font-size:16px}
 }
 
 /* ---------- DASHBOARD ---------- */
@@ -258,9 +256,3 @@ table.lst th .ar{color:var(--accent);margin-left:3px;font-size:9px}
 .uprow:last-of-type{border-bottom:none}
 .uprow .upt{flex:1;font-weight:600;font-size:13px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 @media(max-width:640px){.dcards{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(2,1fr)}}
-
-.login{max-width:380px;margin:14vh auto;background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;padding:28px;text-align:center;box-shadow:0 24px 60px -30px rgba(20,28,45,.35)}
-.login .brand{justify-content:center;margin-bottom:6px}
-.login p{color:var(--ink-soft);font-size:13px;margin:0 0 20px}
-.login .btn{width:100%;margin-bottom:10px;padding:11px}
-.login input{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:11px;margin-bottom:10px;font-size:13.5px}

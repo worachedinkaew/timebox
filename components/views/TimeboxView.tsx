@@ -1,18 +1,14 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { blockApi } from '@/lib/db';
+import { Fragment, useMemo, useState } from 'react';
 import type { Block, DB, Task } from '@/lib/types';
 import { THDOW, THMON, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '@/lib/dates';
-import { getParam, setParam } from '@/lib/urlstate';
-import { loadHours, saveHours } from '@/lib/hours';
 import { BUFID, cellKey } from '@/lib/slots';
 import { taskColor } from '@/lib/colors';
 import { doneStatusIds } from '@/lib/tasks';
-
-type Op =
-  | { kind: 'set'; taskId: string | null; date: string; slot: number }
-  | { kind: 'del'; date: string; slot: number };
+import { useHours } from '@/hooks/useHours';
+import { useUrlDate } from '@/hooks/useUrlDate';
+import { useTimeboxPaint } from '@/hooks/useTimeboxPaint';
 
 export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   db: DB;               // tasks ผ่าน filter แล้ว — ใช้กับ rail
@@ -20,20 +16,8 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
   updateBlocks: (up: (blocks: Block[]) => Block[]) => void;
   onError: () => void;
 }) {
-  const [hours, setHoursRaw] = useState(loadHours);
-  const setHours = (h: { start: number; end: number }) => {
-    setHoursRaw(h);
-    saveHours(h);
-  };
-  // component นี้ mount ฝั่ง client เท่านั้น (หลัง auth gate) อ่าน URL ใน initializer ได้เลย
-  const [weekStart, setWeekStartRaw] = useState(() => {
-    const w = getParam('w');
-    return w && /^\d{4}-\d{2}-\d{2}$/.test(w) ? iso(mondayOf(parseISO(w))) : iso(mondayOf(todayDate()));
-  });
-  const setWeekStart = (ws: string) => {
-    setWeekStartRaw(ws);
-    setParam('w', ws);
-  };
+  const [hours, setHours] = useHours();
+  const [weekStart, setWeekStart] = useUrlDate('w', () => iso(mondayOf(todayDate())));
   const [sel, setSel] = useState<string | null>(null);
   const [erase, setErase] = useState(false);
   const [warn, setWarn] = useState(false);
@@ -44,103 +28,10 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
     return m;
   }, [db.blocks]);
 
-  // สำเนาที่แก้ได้ทันทีระหว่างลากระบาย — pointermove มาถี่กว่ารอบ render ของ React
-  const mapRef = useRef(blockMap);
-  useEffect(() => { mapRef.current = new Map(blockMap); }, [blockMap]);
-
-  const paintRef = useRef<{ painting: boolean; mode: 'paint' | 'erase'; ops: Map<string, Op> }>(
-    { painting: false, mode: 'paint', ops: new Map() },
-  );
-  const onErrorRef = useRef(onError);
-  useEffect(() => { onErrorRef.current = onError; });
-
-  // บันทึกทั้ง stroke ทีเดียวตอนปล่อยนิ้ว/เมาส์ (เหมือน save-on-pointerup ของ prototype)
-  useEffect(() => {
-    async function flush() {
-      const p = paintRef.current;
-      if (!p.painting) return;
-      p.painting = false;
-      const ops = [...p.ops.values()];
-      p.ops.clear();
-      if (!ops.length) return;
-      const paints = ops.filter((o) => o.kind === 'set') as Extract<Op, { kind: 'set' }>[];
-      const erases = ops.filter((o) => o.kind === 'del');
-      try {
-        if (paints.length) await blockApi.setMany(paints);
-        if (erases.length) await blockApi.removeMany(erases);
-      } catch (e) {
-        console.error(e);
-        // 23502 = not-null violation (task_id) — DB ยังไม่รัน migration รองรับ buffer
-        alert((e as { code?: string })?.code === '23502'
-          ? 'บันทึกไม่สำเร็จ: ฐานข้อมูลยังไม่รองรับ "เวลาเผื่องานแทรก"\nไปที่ Supabase → SQL Editor แล้วรันไฟล์ supabase/02_buffer_blocks.sql ก่อน'
-          : 'บันทึกเวลาไม่สำเร็จ ลองใหม่อีกครั้ง');
-        onErrorRef.current();
-      }
-    }
-    window.addEventListener('pointerup', flush);
-    return () => window.removeEventListener('pointerup', flush);
-  }, []);
-
-  function cellFromPoint(x: number, y: number): HTMLElement | null {
-    let el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (el && el.classList.contains('lb')) el = el.parentElement;
-    return el?.dataset.date && el.dataset.slot != null ? el : null;
-  }
-
-  // block ในช่องนี้ตรงกับสิ่งที่เลือกอยู่ไหม (งานปกติ หรือแถว buffer)
-  const selMatches = (b: Block | undefined) =>
-    !!b && (sel === BUFID ? b.taskId === null : b.taskId === sel);
-
-  function applyCell(el: HTMLElement | null) {
-    if (!el) return;
-    const p = paintRef.current;
-    const date = el.dataset.date!, slot = +el.dataset.slot!;
-    const k = cellKey(date, slot);
-    const ex = mapRef.current.get(k);
-    let op: Op | null = null;
-    if (erase) {
-      if (ex) op = { kind: 'del', date, slot };
-    } else if (sel) {
-      if (p.mode === 'erase') {
-        if (selMatches(ex)) op = { kind: 'del', date, slot };
-      } else if (!selMatches(ex)) {
-        op = { kind: 'set', taskId: sel === BUFID ? null : sel, date, slot };
-      }
-    }
-    if (!op) return;
-    p.ops.set(k, op);
-    if (op.kind === 'del') {
-      mapRef.current.delete(k);
-      updateBlocks((bs) => bs.filter((b) => !(b.date === date && b.slot === slot)));
-    } else {
-      const nb: Block = { id: `local-${k}`, taskId: op.taskId, date, slot };
-      mapRef.current.set(k, nb);
-      updateBlocks((bs) => [...bs.filter((b) => !(b.date === date && b.slot === slot)), nb]);
-    }
-  }
-
-  function onPointerDown(e: React.PointerEvent) {
-    const el = cellFromPoint(e.clientX, e.clientY);
-    if (!el) return;
-    if (!sel && !erase) {
-      setWarn(true);
-      setTimeout(() => setWarn(false), 800);
-      return;
-    }
-    const p = paintRef.current;
-    p.painting = true;
-    p.ops.clear();
-    const ex = mapRef.current.get(cellKey(el.dataset.date!, +el.dataset.slot!));
-    p.mode = !erase && selMatches(ex) ? 'erase' : 'paint';
-    applyCell(el);
-    e.preventDefault();
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!paintRef.current.painting) return;
-    applyCell(cellFromPoint(e.clientX, e.clientY));
-    e.preventDefault();
-  }
+  const { onPointerDown, onPointerMove } = useTimeboxPaint({
+    blockMap, sel, erase, updateBlocks, onError,
+    onEmptyPick: () => { setWarn(true); setTimeout(() => setWarn(false), 800); },
+  });
 
   const ws = parseISO(weekStart);
   // ตัดงานที่ status ติดธง done ออกจาก rail (ชุด status ผู้ใช้กำหนดเองได้)

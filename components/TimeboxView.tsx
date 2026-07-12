@@ -85,6 +85,10 @@ export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
         if (erases.length) await blockApi.removeMany(erases);
       } catch (e) {
         console.error(e);
+        // 23502 = not-null violation (task_id) — DB ยังไม่รัน migration รองรับ buffer
+        alert((e as { code?: string })?.code === '23502'
+          ? 'บันทึกไม่สำเร็จ: ฐานข้อมูลยังไม่รองรับ "เวลาเผื่องานแทรก"\nไปที่ Supabase → SQL Editor แล้วรันไฟล์ supabase/02_buffer_blocks.sql ก่อน'
+          : 'บันทึกเวลาไม่สำเร็จ ลองใหม่อีกครั้ง');
         onErrorRef.current();
       }
     }

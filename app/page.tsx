@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { authApi, loadAll, taskApi } from '../lib/db';
 import { STATUSES, PRIORITIES, TASK_COLORS } from '../lib/types';
 import type { Block, DB, Task, Status, Priority } from '../lib/types';
@@ -37,10 +37,29 @@ export default function Page() {
   const [editing, setEditing] = useState<{ task: Task | null; defaults?: Partial<Task> } | null>(null);
   const [showFields, setShowFields] = useState(false);
 
+  // filter ใช้ร่วมกันทุก view — เก็บใน URL ด้วย (?q= ?st= ?pr=)
+  const [q, setQ] = useState(() => getParam('q') ?? '');
+  const [fStatus, setFStatus] = useState(() => getParam('st') ?? '');
+  const [fPriority, setFPriority] = useState(() => getParam('pr') ?? '');
+
   const switchView = (v: View) => {
     setView(v);
     setParam('v', v === 'list' ? null : v);
   };
+
+  const fdb = useMemo(() => {
+    if (!db) return null;
+    const qq = q.trim().toLowerCase();
+    if (!qq && !fStatus && !fPriority) return db;
+    return {
+      ...db,
+      tasks: db.tasks.filter((t) =>
+        (!qq || t.title.toLowerCase().includes(qq) || t.desc.toLowerCase().includes(qq)) &&
+        (!fStatus || t.status === fStatus) &&
+        (!fPriority || t.priority === fPriority)
+      ),
+    };
+  }, [db, q, fStatus, fPriority]);
 
   useEffect(() => {
     authApi.getUser().then((u) => { setUserId(u?.id ?? null); setReady(true); });
@@ -87,24 +106,52 @@ export default function Page() {
         <button className="btn pri" onClick={() => setEditing({ task: null })}>+ งานใหม่</button>
       </div>
 
+      <div className="fbar">
+        <input
+          type="search"
+          placeholder="🔍 ค้นหางาน…"
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setParam('q', e.target.value || null); }}
+        />
+        <select value={fStatus} onChange={(e) => { setFStatus(e.target.value); setParam('st', e.target.value || null); }}>
+          <option value="">ทุกสถานะ</option>
+          {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+        <select value={fPriority} onChange={(e) => { setFPriority(e.target.value); setParam('pr', e.target.value || null); }}>
+          <option value="">ทุก priority</option>
+          {PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+        </select>
+        {(q || fStatus || fPriority) && (
+          <button
+            className="btn"
+            onClick={() => {
+              setQ(''); setFStatus(''); setFPriority('');
+              setParam('q', null); setParam('st', null); setParam('pr', null);
+            }}
+          >
+            ✕ ล้าง{fdb && db && fdb.tasks.length < db.tasks.length ? ` (${fdb.tasks.length}/${db.tasks.length})` : ''}
+          </button>
+        )}
+      </div>
+
       <div className="panel">
-        {!db ? (
+        {!db || !fdb ? (
           <div className="placeholder">กำลังโหลดข้อมูล…</div>
         ) : view === 'list' ? (
-          <ListView db={db} onEdit={(t) => setEditing({ task: t })} />
+          <ListView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         ) : view === 'kanban' ? (
           <KanbanView
-            db={db}
+            db={fdb}
             onEdit={(t) => setEditing({ task: t })}
             onAdd={(status) => setEditing({ task: null, defaults: { status } })}
             onMove={moveTask}
           />
         ) : view === 'gantt' ? (
-          <GanttView db={db} onEdit={(t) => setEditing({ task: t })} />
+          <GanttView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         ) : view === 'timebox' ? (
-          <TimeboxView db={db} updateBlocks={updateBlocks} onError={refresh} />
+          <TimeboxView db={fdb} allTasks={db.tasks} updateBlocks={updateBlocks} onError={refresh} />
         ) : (
-          <CalendarView db={db} onEdit={(t) => setEditing({ task: t })} />
+          <CalendarView db={fdb} onEdit={(t) => setEditing({ task: t })} />
         )}
       </div>
 

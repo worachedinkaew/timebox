@@ -51,7 +51,7 @@ create table blocks (
   user_id  uuid not null references auth.users(id) on delete cascade,
   task_id  uuid references tasks(id) on delete cascade,
   date     date not null,
-  slot     int  not null,     -- index ช่อง 30 นาที (0 = เวลาเริ่มของวัน)
+  slot     int  not null,     -- index ช่อง 30 นาที จากเที่ยงคืน (16 = 08:00, 17 = 08:30)
   created_at timestamptz not null default now(),
   unique (user_id, date, slot)   -- 1 ช่องมีได้งานเดียว
 );

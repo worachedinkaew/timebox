@@ -69,10 +69,16 @@ supabase/         schema + RLS
 ## สถานะ view
 
 1. ✅ **Kanban** — คอลัมน์ตาม status + drag (@dnd-kit รองรับ touch) — `components/KanbanView.tsx`
-2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ — `components/GanttView.tsx`
-3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว + "เวลาเผื่องานแทรก" (buffer) — `components/TimeboxView.tsx`
-   (DB เก่าที่รัน `01_schema.sql` ก่อน buffer มา ต้องรัน `supabase/02_buffer_blocks.sql` เพิ่ม)
-4. ✅ **Calendar** — เดือน grid ตามช่วงวันที่ — `components/CalendarView.tsx`
+2. ✅ **Gantt** — แท่งตาม start/end + เส้นวันนี้ เลื่อนช่วงวันที่ได้ครั้งละสัปดาห์ (`?g=`) — `components/GanttView.tsx`
+3. ✅ **Timebox** — กริดลากระบายเวลา บันทึกเป็น batch ตอนปล่อยนิ้ว, "เวลาเผื่องานแทรก" (buffer),
+   ช่วงชั่วโมงที่แสดงปรับได้ (เก็บใน localStorage) — `components/TimeboxView.tsx`
+4. ✅ **Calendar** — มุมมองเดือน / สัปดาห์ / วัน (`?cm=`) — `components/CalendarView.tsx`
+5. ✅ **Filter** — ค้นหาชื่อ/รายละเอียด + กรอง status/priority ใช้ร่วมกันทุก view (`?q= ?st= ?pr=`)
+
+migration สำหรับ DB ที่สร้างก่อนหน้า (รันตามลำดับใน SQL Editor):
+
+- `supabase/02_buffer_blocks.sql` — ทำ `blocks.task_id` เป็น nullable (buffer)
+- `supabase/03_absolute_slots.sql` — เปลี่ยน slot เป็น index จากเที่ยงคืน (รันครั้งเดียว!)
 
 และครบตามแผนเฟสแรกแล้ว:
 

@@ -7,8 +7,9 @@ import type { Block, DB, Task } from '../lib/types';
 import { THDOW, addDays, fmtShort, iso, mondayOf, pad, parseISO, todayDate } from '../lib/dates';
 import { getParam, setParam } from '../lib/urlstate';
 
-const TB_START = 8, TB_END = 18;
-const N_SLOTS = (TB_END - TB_START) * 2; // 1 ช่อง = 30 นาที
+// slot = index ช่อง 30 นาทีจากเที่ยงคืน (16 = 08:00) — ช่วงที่แสดงเลือกได้ เก็บใน localStorage
+const HOURS_KEY = 'timebox:hours';
+const DEFAULT_HOURS = { start: 8, end: 18 };
 const cellKey = (date: string, slot: number) => `${date}|${slot}`;
 const color = (t: Task) => TASK_COLORS[(t.cIdx || 0) % TASK_COLORS.length];
 
@@ -19,11 +20,26 @@ type Op =
   | { kind: 'set'; taskId: string | null; date: string; slot: number }
   | { kind: 'del'; date: string; slot: number };
 
-export default function TimeboxView({ db, updateBlocks, onError }: {
-  db: DB;
+export default function TimeboxView({ db, allTasks, updateBlocks, onError }: {
+  db: DB;               // tasks ผ่าน filter แล้ว — ใช้กับ rail
+  allTasks: Task[];     // tasks ทั้งหมด — block ที่ระบายไว้ต้องหาเจ้าของเจอเสมอ
   updateBlocks: (up: (blocks: Block[]) => Block[]) => void;
   onError: () => void;
 }) {
+  const [hours, setHoursRaw] = useState(() => {
+    try {
+      const s = localStorage.getItem(HOURS_KEY);
+      if (s) {
+        const p = JSON.parse(s);
+        if (Number.isInteger(p.start) && Number.isInteger(p.end) && p.start >= 0 && p.end <= 24 && p.end > p.start) return p as { start: number; end: number };
+      }
+    } catch { /* ค่าเสียก็ใช้ default */ }
+    return DEFAULT_HOURS;
+  });
+  const setHours = (h: { start: number; end: number }) => {
+    setHoursRaw(h);
+    try { localStorage.setItem(HOURS_KEY, JSON.stringify(h)); } catch { /* private mode */ }
+  };
   // component นี้ mount ฝั่ง client เท่านั้น (หลัง auth gate) อ่าน URL ใน initializer ได้เลย
   const [weekStart, setWeekStartRaw] = useState(() => {
     const w = getParam('w');
@@ -139,7 +155,7 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
 
   const ws = parseISO(weekStart);
   const railTasks = db.tasks.filter((t) => t.status !== 'done');
-  const taskById = useMemo(() => new Map(db.tasks.map((t) => [t.id, t])), [db.tasks]);
+  const taskById = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
   const plannedHours = useMemo(() => {
     const m = new Map<string, number>();
     db.blocks.forEach((b) => {
@@ -205,6 +221,14 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
           <button onClick={() => setWeekStart(iso(addDays(ws, -7)))}>‹</button>
           <span className="wk">{fmtShort(weekStart)} – {fmtShort(iso(addDays(ws, 6)))}</span>
           <button onClick={() => setWeekStart(iso(addDays(ws, 7)))}>›</button>
+          <div className="sp" />
+          <select value={hours.start} onChange={(e) => { const s = +e.target.value; setHours({ start: s, end: Math.max(hours.end, s + 1) }); }}>
+            {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+          </select>
+          <span className="muted">–</span>
+          <select value={hours.end} onChange={(e) => setHours({ ...hours, end: +e.target.value })}>
+            {Array.from({ length: 24 - hours.start }, (_, i) => { const h = hours.start + 1 + i; return <option key={h} value={h}>{pad(h)}:00</option>; })}
+          </select>
         </div>
         <div className="scroll">
           <div
@@ -217,11 +241,12 @@ export default function TimeboxView({ db, updateBlocks, onError }: {
             {Array.from({ length: 7 }, (_, dd) => (
               <div key={dd} className="tgh">{THDOW[dd]}<small>{addDays(ws, dd).getDate()}</small></div>
             ))}
-            {Array.from({ length: N_SLOTS }, (_, s) => {
+            {Array.from({ length: (hours.end - hours.start) * 2 }, (_, i) => {
+              const s = hours.start * 2 + i;
               const hr = s % 2 === 0;
               return (
                 <Fragment key={s}>
-                  <div className={'tgl' + (hr ? ' hr' : '')}>{hr ? `${pad(TB_START + s / 2)}:00` : ''}</div>
+                  <div className={'tgl' + (hr ? ' hr' : '')}>{hr ? `${pad(s / 2)}:00` : ''}</div>
                   {Array.from({ length: 7 }, (_, dz) => {
                     const date = iso(addDays(ws, dz));
                     const blk = blockMap.get(cellKey(date, s));
